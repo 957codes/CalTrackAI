@@ -18,6 +18,7 @@ import { analyzeFoodPhoto } from "../../src/services/foodAnalysis";
 import { addMealEntry } from "../../src/utils/storage";
 import { saveCorrection } from "../../src/utils/corrections";
 import { trackUserAction } from "../../src/services/sentry";
+import { persistPhoto } from "../../src/utils/photoPersist";
 import { useIsOnline } from "../../src/services/networkService";
 import { searchCommonFoods } from "../../src/data/commonFoods";
 import { FoodItem, MacroBreakdown } from "../../src/types";
@@ -68,7 +69,9 @@ export default function CameraScreen() {
   }
 
   async function processImage(uri: string, base64: string) {
-    setPhotoUri(uri);
+    // Copy to persistent storage so photos survive OS cache cleanup
+    const persistedUri = await persistPhoto(uri).catch(() => uri);
+    setPhotoUri(persistedUri);
     setFoods(null);
     setTotalMacros(null);
     setOverallConfidence(0);

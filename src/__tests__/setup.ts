@@ -61,6 +61,7 @@ jest.mock("react-native", () => {
 jest.mock("../services/healthKitService", () => ({
   writeMealToHealthKit: jest.fn(() => Promise.resolve()),
   writeWaterToHealthKit: jest.fn(() => Promise.resolve()),
+  deleteWaterFromHealthKit: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock expo-notifications
@@ -125,6 +126,28 @@ jest.mock("expo-constants", () => ({
     },
   },
 }));
+
+// Mock expo-file-system
+jest.mock("expo-file-system", () => {
+  class MockFile {
+    uri: string;
+    exists = true;
+    constructor(...args: any[]) {
+      this.uri = typeof args[0] === "string" ? args[0] : `file://mock/${args[1] || "file"}`;
+    }
+    copy() {}
+  }
+  class MockDirectory {
+    exists = false;
+    constructor() {}
+    create() { this.exists = true; }
+  }
+  return {
+    File: MockFile,
+    Directory: MockDirectory,
+    Paths: { document: "file://documents/" },
+  };
+});
 
 // Mock @react-native-community/netinfo
 jest.mock("@react-native-community/netinfo", () => ({

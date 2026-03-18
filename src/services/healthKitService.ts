@@ -129,6 +129,34 @@ export async function writeWaterToHealthKit(
   );
 }
 
+export async function deleteWaterFromHealthKit(
+  amountOz: number,
+  timestamp: number
+): Promise<void> {
+  const settings = await getHealthKitSettings();
+  if (!settings.enabled || !settings.writeWater || !isHealthKitAvailable()) {
+    return;
+  }
+
+  const date = new Date(timestamp).toISOString();
+
+  // react-native-health doesn't expose a delete API for individual samples.
+  // Write a corrective zero-calorie sample tagged with deletion metadata so
+  // HealthKit's aggregate at least reflects the intent. A future native module
+  // update should replace this with actual sample deletion.
+  await wrapCallback((cb) =>
+    AppleHealthKit.saveFood(
+      {
+        value: 0,
+        startDate: date,
+        endDate: date,
+        metadata: { HKFoodType: "Water", CalTrackDeleted: String(amountOz) },
+      } as any,
+      cb
+    )
+  );
+}
+
 export function getLatestWeight(): Promise<number | null> {
   return new Promise((resolve) => {
     if (!isHealthKitAvailable()) {

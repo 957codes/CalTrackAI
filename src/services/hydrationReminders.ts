@@ -37,11 +37,14 @@ export async function scheduleHydrationReminders(): Promise<void> {
   const { reminderStartHour, reminderEndHour, reminderIntervalHours } =
     settings;
 
+  // Guard against zero/negative interval which would infinite-loop
+  const interval = Math.max(reminderIntervalHours, 1);
+
   // Schedule repeating reminders for each time slot during waking hours
   for (
     let hour = reminderStartHour;
     hour < reminderEndHour;
-    hour += reminderIntervalHours
+    hour += interval
   ) {
     const waterLog = await getDailyWaterLog();
     const glasses = Math.floor(waterLog.totalOz / 8);

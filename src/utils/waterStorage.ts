@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DailyWaterLog, WaterEntry, WaterSettings } from "../types";
 import { safeParse } from "./safeParse";
-import { writeWaterToHealthKit } from "../services/healthKitService";
+import { writeWaterToHealthKit, deleteWaterFromHealthKit } from "../services/healthKitService";
 import { refreshWidget } from "../services/widgetService";
 
 const WATER_LOG_PREFIX = "caltrack_water_";
@@ -56,10 +56,20 @@ export async function deleteWaterEntry(
 ): Promise<DailyWaterLog> {
   const now = new Date();
   const log = await getDailyWaterLog(now);
+  const removed = log.entries.find((e) => e.id === entryId);
   log.entries = log.entries.filter((e) => e.id !== entryId);
   log.totalOz = log.entries.reduce((sum, e) => sum + e.amountOz, 0);
   const key = WATER_LOG_PREFIX + getDateKey(now);
   await AsyncStorage.setItem(key, JSON.stringify(log));
+
+  // Sync removal to HealthKit (non-blocking)
+  if (removed) {
+    deleteWaterFromHealthKit(removed.amountOz, removed.timestamp).catch(() => {});
+  }
+
+  // Refresh widget (non-blocking)
+  refreshWidget().catch(() => {});
+
   return log;
 }
 
