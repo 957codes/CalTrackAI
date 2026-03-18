@@ -38,6 +38,17 @@ export interface UserCorrection {
 
 export type WeightGoal = "lose" | "maintain" | "gain";
 export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
+export type Gender = "male" | "female";
+export type DietaryPreference = "none" | "vegetarian" | "vegan" | "keto";
+
+export interface UserProfile {
+  gender: Gender;
+  heightCm: number;
+  weightKg: number;
+  age: number;
+  activityLevel: ActivityLevel;
+  dietaryPreference: DietaryPreference;
+}
 
 export interface UserGoals {
   weightGoal: WeightGoal;
