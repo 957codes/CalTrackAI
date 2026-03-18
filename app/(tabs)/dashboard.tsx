@@ -2,19 +2,30 @@ import { useState, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { getDailyLog, getWeekLogs } from "../../src/utils/storage";
+import { getUserGoals } from "../../src/utils/onboarding";
 import { DailyLog } from "../../src/types";
 
-const DAILY_GOALS = { calories: 2000, protein: 150, carbs: 250, fat: 65 };
+const DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 250, fat: 65 };
 
 export default function DashboardScreen() {
   const [today, setToday] = useState<DailyLog | null>(null);
   const [weekLogs, setWeekLogs] = useState<DailyLog[]>([]);
+  const [dailyGoals, setDailyGoals] = useState(DEFAULT_GOALS);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setToday(await getDailyLog());
         setWeekLogs(await getWeekLogs());
+        const goals = await getUserGoals();
+        if (goals) {
+          setDailyGoals({
+            calories: goals.targetCalories,
+            protein: goals.targetProtein,
+            carbs: goals.targetCarbs,
+            fat: goals.targetFat,
+          });
+        }
       })();
     }, [])
   );
@@ -38,28 +49,28 @@ export default function DashboardScreen() {
         <ProgressBar
           label="Calories"
           current={today.totalMacros.calories}
-          goal={DAILY_GOALS.calories}
+          goal={dailyGoals.calories}
           unit="kcal"
           color="#f97316"
         />
         <ProgressBar
           label="Protein"
           current={today.totalMacros.protein}
-          goal={DAILY_GOALS.protein}
+          goal={dailyGoals.protein}
           unit="g"
           color="#3b82f6"
         />
         <ProgressBar
           label="Carbs"
           current={today.totalMacros.carbs}
-          goal={DAILY_GOALS.carbs}
+          goal={dailyGoals.carbs}
           unit="g"
           color="#eab308"
         />
         <ProgressBar
           label="Fat"
           current={today.totalMacros.fat}
-          goal={DAILY_GOALS.fat}
+          goal={dailyGoals.fat}
           unit="g"
           color="#ef4444"
         />
@@ -70,7 +81,7 @@ export default function DashboardScreen() {
         <View style={styles.weekChart}>
           {weekLogs.map((log, i) => {
             const pct = Math.min(
-              (log.totalMacros.calories / DAILY_GOALS.calories) * 100,
+              (log.totalMacros.calories / dailyGoals.calories) * 100,
               100
             );
             const d = new Date(log.date + "T12:00:00");

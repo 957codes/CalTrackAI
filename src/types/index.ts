@@ -35,3 +35,15 @@ export interface UserCorrection {
   correctedCalories: number;
   timestamp: number;
 }
+
+export type WeightGoal = "lose" | "maintain" | "gain";
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "active" | "very_active";
+
+export interface UserGoals {
+  weightGoal: WeightGoal;
+  activityLevel: ActivityLevel;
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
+}
