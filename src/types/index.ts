@@ -65,3 +65,21 @@ export interface HealthKitSettings {
   readWeight: boolean;
   readActivity: boolean;
 }
+
+// Feedback system types
+export type FeedbackCategory = "bug" | "feature" | "general";
+export type BugSeverity = "blocks_usage" | "annoying" | "minor";
+export type FeedbackStatus = "pending" | "submitted" | "failed";
+
+export interface FeedbackSubmission {
+  id: string;
+  category: FeedbackCategory;
+  subject: string;
+  description: string;
+  severity?: BugSeverity; // only for bugs
+  contactEmail?: string;
+  screenshotUri?: string;
+  status: FeedbackStatus;
+  createdAt: number;
+  submittedAt?: number;
+}

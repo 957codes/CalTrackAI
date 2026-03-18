@@ -112,6 +112,18 @@ export default function MoreScreen() {
           onPress={() => router.push("/faq")}
           styles={styles}
         />
+        <SettingsRow
+          label="Send Feedback"
+          sublabel="Report a bug, request a feature, or share thoughts"
+          onPress={() => router.push("/feedback")}
+          styles={styles}
+        />
+        <SettingsRow
+          label="Feedback Admin"
+          sublabel="Browse and manage feedback submissions"
+          onPress={() => router.push("/feedback-admin")}
+          styles={styles}
+        />
       </View>
 
       {showHealthKit && (

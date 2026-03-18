@@ -58,6 +58,8 @@ function RootLayoutInner() {
         <Stack.Screen name="privacy" options={{ headerShown: true, presentation: "modal" }} />
         <Stack.Screen name="terms" options={{ headerShown: true, presentation: "modal" }} />
         <Stack.Screen name="faq" options={{ headerShown: true, presentation: "modal" }} />
+        <Stack.Screen name="feedback" options={{ headerShown: true, presentation: "modal" }} />
+        <Stack.Screen name="feedback-admin" options={{ headerShown: true, presentation: "modal" }} />
       </Stack>
     </>
   );
