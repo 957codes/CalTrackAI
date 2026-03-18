@@ -1,0 +1,92 @@
+import { FoodItem, MacroBreakdown } from "../types";
+
+const OPEN_FOOD_FACTS_API = "https://world.openfoodfacts.org/api/v2/product";
+
+interface OpenFoodFactsNutriments {
+  "energy-kcal_100g"?: number;
+  proteins_100g?: number;
+  carbohydrates_100g?: number;
+  fat_100g?: number;
+  "energy-kcal_serving"?: number;
+  proteins_serving?: number;
+  carbohydrates_serving?: number;
+  fat_serving?: number;
+}
+
+interface OpenFoodFactsProduct {
+  product_name?: string;
+  brands?: string;
+  serving_size?: string;
+  serving_quantity?: number;
+  nutriments?: OpenFoodFactsNutriments;
+}
+
+export interface BarcodeResult {
+  found: boolean;
+  food?: FoodItem;
+  productName?: string;
+  brand?: string;
+  servingSize?: string;
+}
+
+export async function lookupBarcode(barcode: string): Promise<BarcodeResult> {
+  const url = `${OPEN_FOOD_FACTS_API}/${encodeURIComponent(barcode)}.json?fields=product_name,brands,serving_size,serving_quantity,nutriments`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    return { found: false };
+  }
+
+  const data = await response.json();
+  if (data.status !== 1 || !data.product) {
+    return { found: false };
+  }
+
+  const product: OpenFoodFactsProduct = data.product;
+  const n = product.nutriments;
+
+  if (!n || !product.product_name) {
+    return { found: false };
+  }
+
+  // Prefer per-serving data, fall back to per-100g
+  let macros: MacroBreakdown;
+  let portion: string;
+
+  if (n["energy-kcal_serving"] != null && n["energy-kcal_serving"] > 0) {
+    macros = {
+      calories: Math.round(n["energy-kcal_serving"] || 0),
+      protein: Math.round(n.proteins_serving || 0),
+      carbs: Math.round(n.carbohydrates_serving || 0),
+      fat: Math.round(n.fat_serving || 0),
+    };
+    portion = product.serving_size || "1 serving";
+  } else {
+    macros = {
+      calories: Math.round(n["energy-kcal_100g"] || 0),
+      protein: Math.round(n.proteins_100g || 0),
+      carbs: Math.round(n.carbohydrates_100g || 0),
+      fat: Math.round(n.fat_100g || 0),
+    };
+    portion = "100g";
+  }
+
+  const displayName = product.brands
+    ? `${product.product_name} (${product.brands})`
+    : product.product_name;
+
+  const food: FoodItem = {
+    name: displayName,
+    portion,
+    macros,
+    confidence: 95, // barcode lookups are highly accurate
+  };
+
+  return {
+    found: true,
+    food,
+    productName: product.product_name,
+    brand: product.brands,
+    servingSize: product.serving_size,
+  };
+}

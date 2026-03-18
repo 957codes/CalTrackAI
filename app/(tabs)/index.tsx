@@ -12,6 +12,7 @@ import {
   Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 import { analyzeFoodPhoto } from "../../src/services/foodAnalysis";
 import { addMealEntry } from "../../src/utils/storage";
 import { saveCorrection } from "../../src/utils/corrections";
@@ -175,6 +176,15 @@ export default function CameraScreen() {
           </Text>
           <TouchableOpacity style={styles.primaryBtn} onPress={takePhoto}>
             <Text style={styles.btnText}>Take Photo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.barcodeBtn}
+            onPress={() => {
+              trackUserAction("open_barcode_scanner");
+              router.push("/barcode");
+            }}
+          >
+            <Text style={styles.barcodeBtnText}>Scan Barcode</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryBtn} onPress={pickImage}>
             <Text style={styles.btnTextSecondary}>Choose from Gallery</Text>
@@ -347,6 +357,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   btnText: { color: "#000", fontSize: 18, fontWeight: "700" },
+  barcodeBtn: {
+    backgroundColor: "#1a1a2e",
+    borderColor: "#f97316",
+    borderWidth: 2,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    marginBottom: 16,
+    width: "100%",
+    alignItems: "center",
+  },
+  barcodeBtnText: { color: "#f97316", fontSize: 16, fontWeight: "600" },
   secondaryBtn: {
     borderColor: "#4ade80",
     borderWidth: 2,
