@@ -1,30 +1,51 @@
 {
   "expo": {
-    "name": "CalTrackAI",
+    "name": "CalTrack AI",
     "slug": "CalTrackAI",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "scheme": "caltrackai",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0f0f23"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.caltrackai.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "CalTrack AI uses your camera to scan meals and estimate calories.",
+        "NSPhotoLibraryUsageDescription": "CalTrack AI accesses your photo library to analyze meal photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0f0f23",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "package": "com.caltrackai.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "CalTrack AI uses your camera to scan meals."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "CalTrack AI accesses your photos to analyze meals."
+        }
+      ]
+    ]
   }
 }
