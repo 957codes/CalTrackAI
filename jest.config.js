@@ -7,11 +7,14 @@ module.exports = {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   transformIgnorePatterns: ["node_modules/(?!react-native|@react-native|@sentry|expo-.*)"],
   setupFiles: ["<rootDir>/src/__tests__/setup.ts"],
-  globals: {
-    "ts-jest": {
-      tsconfig: {
-        jsx: "react-jsx",
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          jsx: "react-jsx",
+        },
       },
-    },
+    ],
   },
 };
