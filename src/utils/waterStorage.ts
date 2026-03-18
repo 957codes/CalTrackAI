@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DailyWaterLog, WaterEntry, WaterSettings } from "../types";
 import { writeWaterToHealthKit } from "../services/healthKitService";
+import { refreshWidget } from "../services/widgetService";
 
 const WATER_LOG_PREFIX = "caltrack_water_";
 const WATER_SETTINGS_KEY = "caltrack_water_settings";
@@ -41,6 +42,9 @@ export async function addWaterEntry(amountOz: number): Promise<DailyWaterLog> {
 
   // Sync to HealthKit (non-blocking)
   writeWaterToHealthKit(amountOz, now.getTime()).catch(() => {});
+
+  // Refresh widget (non-blocking)
+  refreshWidget().catch(() => {});
 
   return log;
 }

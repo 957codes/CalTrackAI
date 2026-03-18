@@ -46,6 +46,10 @@ describe("syncWidgetData", () => {
     expect(data.caloriesGoal).toBe(2000);
     expect(data.proteinConsumed).toBe(80);
     expect(data.proteinGoal).toBe(150);
+    expect(data.waterConsumedOz).toBe(0);
+    expect(data.waterGoalOz).toBe(64);
+    expect(data.mealsLogged).toBe(0);
+    expect(data.streakDays).toBe(0);
   });
 
   it("uses default goals when none are saved", async () => {
@@ -108,6 +112,41 @@ describe("syncWidgetData", () => {
     const data = mockSetWidgetData.mock.calls[0][0];
     expect(data.lastMealName.length).toBeLessThanOrEqual(40);
     expect(data.lastMealName).toContain("...");
+  });
+
+  it("includes water data when water has been logged", async () => {
+    const today = new Date().toISOString().split("T")[0];
+    await AsyncStorage.setItem(
+      `caltrack_water_${today}`,
+      JSON.stringify({ date: today, entries: [{ id: "w1", timestamp: Date.now(), amountOz: 24 }], totalOz: 24 })
+    );
+    await AsyncStorage.setItem(
+      "caltrack_water_settings",
+      JSON.stringify({ dailyGoalOz: 80, remindersEnabled: false, reminderIntervalHours: 2, reminderStartHour: 8, reminderEndHour: 22 })
+    );
+
+    const log = makeLog();
+    await syncWidgetData(log);
+
+    const data = mockSetWidgetData.mock.calls[0][0];
+    expect(data.waterConsumedOz).toBe(24);
+    expect(data.waterGoalOz).toBe(80);
+  });
+
+  it("includes meals count", async () => {
+    const log = makeLog({
+      meals: [
+        { id: "m1", timestamp: Date.now(), photoUri: null, foods: [{ name: "Food", portion: "1", macros: { calories: 100, protein: 10, carbs: 10, fat: 5 }, confidence: 90 }], totalMacros: { calories: 100, protein: 10, carbs: 10, fat: 5 }, overallConfidence: 90 },
+        { id: "m2", timestamp: Date.now(), photoUri: null, foods: [{ name: "Food2", portion: "1", macros: { calories: 200, protein: 20, carbs: 20, fat: 10 }, confidence: 90 }], totalMacros: { calories: 200, protein: 20, carbs: 20, fat: 10 }, overallConfidence: 90 },
+      ],
+      totalMacros: { calories: 300, protein: 30, carbs: 30, fat: 15 },
+    });
+
+    await syncWidgetData(log);
+
+    const data = mockSetWidgetData.mock.calls[0][0];
+    expect(data.mealsLogged).toBe(2);
+    expect(data.streakDays).toBe(1); // today counts
   });
 
   it("handles empty log gracefully", async () => {
