@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DailyLog, MacroBreakdown, MealEntry } from "../types";
 import { writeMealToHealthKit } from "../services/healthKitService";
 import { syncWidgetData } from "../services/widgetService";
+import { checkAndCelebrateStreak } from "../services/mealReminders";
 
 const STORAGE_KEY_PREFIX = "caltrack_log_";
 
@@ -45,6 +46,9 @@ export async function addMealEntry(meal: MealEntry): Promise<DailyLog> {
 
   // Sync to home screen widget (non-blocking)
   syncWidgetData(log).catch(() => {});
+
+  // Check for streak milestones (non-blocking)
+  checkAndCelebrateStreak().catch(() => {});
 
   return log;
 }

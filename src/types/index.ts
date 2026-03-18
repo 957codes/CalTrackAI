@@ -92,6 +92,20 @@ export type FeedbackCategory = "bug" | "feature" | "general";
 export type BugSeverity = "blocks_usage" | "annoying" | "minor";
 export type FeedbackStatus = "pending" | "submitted" | "failed";
 
+export interface MealReminderSettings {
+  enabled: boolean;
+  breakfastHour: number; // 24h format, default 8
+  lunchHour: number; // default 12
+  dinnerHour: number; // default 18
+}
+
+export interface NotificationSettings {
+  mealReminders: MealReminderSettings;
+  streakCelebrations: boolean;
+  inactivityNudge: boolean;
+  inactivityNudgeHour: number; // 24h format, default 14 (2pm)
+}
+
 export interface FeedbackSubmission {
   id: string;
   category: FeedbackCategory;

@@ -8,6 +8,7 @@ import { initSentry, trackScreenNavigation, Sentry } from "../src/services/sentr
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { ThemeProvider, useTheme } from "../src/theme";
 import { handleDeepLink, consumeDeferredDeepLink } from "../src/services/deepLinking";
+import { rescheduleAllMealNotifications } from "../src/services/mealReminders";
 
 // Initialize Sentry as early as possible
 initSentry();
@@ -46,6 +47,11 @@ function RootLayoutInner() {
       setShowOnboarding(needsOnboarding);
       onboardingRef.current = needsOnboarding;
       setReady(true);
+
+      // Reschedule meal notifications on app launch (non-blocking)
+      if (complete) {
+        rescheduleAllMealNotifications().catch(() => {});
+      }
     });
   }, []);
 

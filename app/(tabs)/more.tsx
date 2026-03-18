@@ -16,7 +16,15 @@ import {
   scheduleHydrationReminders,
   requestNotificationPermissions,
 } from "../../src/services/hydrationReminders";
-import { HealthKitSettings, WaterSettings } from "../../src/types";
+import {
+  scheduleMealReminders,
+  scheduleInactivityNudge,
+} from "../../src/services/mealReminders";
+import {
+  getNotificationSettings,
+  saveNotificationSettings,
+} from "../../src/utils/notificationStorage";
+import { HealthKitSettings, WaterSettings, NotificationSettings } from "../../src/types";
 import { useTheme, ThemeColors } from "../../src/theme";
 
 function SettingsRow({
@@ -50,6 +58,7 @@ export default function MoreScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [hkSettings, setHkSettings] = useState<HealthKitSettings | null>(null);
   const [waterSettings, setWaterSettingsState] = useState<WaterSettings | null>(null);
+  const [notifSettings, setNotifSettings] = useState<NotificationSettings | null>(null);
   const showHealthKit = isHealthKitAvailable();
 
   useEffect(() => {
@@ -57,6 +66,7 @@ export default function MoreScreen() {
       getHealthKitSettings().then(setHkSettings);
     }
     getWaterSettings().then(setWaterSettingsState);
+    getNotificationSettings().then(setNotifSettings);
   }, []);
 
   async function updateWaterGoal(delta: number) {
@@ -102,6 +112,43 @@ export default function MoreScreen() {
     };
     await saveHealthKitSettings(updated);
     setHkSettings(updated);
+  }
+
+  async function toggleMealReminders(enabled: boolean) {
+    if (!notifSettings) return;
+    if (enabled) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert("Notifications Denied", "Please enable notifications for CalTrack AI in Settings.");
+        return;
+      }
+    }
+    const updated = { ...notifSettings, mealReminders: { ...notifSettings.mealReminders, enabled } };
+    await saveNotificationSettings(updated);
+    setNotifSettings(updated);
+    await scheduleMealReminders();
+  }
+
+  async function toggleStreakCelebrations(enabled: boolean) {
+    if (!notifSettings) return;
+    const updated = { ...notifSettings, streakCelebrations: enabled };
+    await saveNotificationSettings(updated);
+    setNotifSettings(updated);
+  }
+
+  async function toggleInactivityNudge(enabled: boolean) {
+    if (!notifSettings) return;
+    if (enabled) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert("Notifications Denied", "Please enable notifications for CalTrack AI in Settings.");
+        return;
+      }
+    }
+    const updated = { ...notifSettings, inactivityNudge: enabled };
+    await saveNotificationSettings(updated);
+    setNotifSettings(updated);
+    await scheduleInactivityNudge();
   }
 
   const handleDeleteData = () => {
@@ -181,6 +228,56 @@ export default function MoreScreen() {
           styles={styles}
         />
       </View>
+
+      {notifSettings && (
+        <>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          <View style={styles.section}>
+            <View style={styles.toggleRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Meal Reminders</Text>
+                <Text style={styles.rowSublabel}>
+                  Breakfast {notifSettings.mealReminders.breakfastHour}:00, Lunch {notifSettings.mealReminders.lunchHour}:00, Dinner {notifSettings.mealReminders.dinnerHour}:00
+                </Text>
+              </View>
+              <Switch
+                value={notifSettings.mealReminders.enabled}
+                onValueChange={toggleMealReminders}
+                trackColor={{ false: colors.inputBorder, true: colors.accent }}
+                thumbColor="#fff"
+              />
+            </View>
+            <View style={styles.toggleRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Inactivity Nudge</Text>
+                <Text style={styles.rowSublabel}>
+                  Remind if no lunch logged by {notifSettings.inactivityNudgeHour}:00
+                </Text>
+              </View>
+              <Switch
+                value={notifSettings.inactivityNudge}
+                onValueChange={toggleInactivityNudge}
+                trackColor={{ false: colors.inputBorder, true: colors.accent }}
+                thumbColor="#fff"
+              />
+            </View>
+            <View style={styles.toggleRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Streak Celebrations</Text>
+                <Text style={styles.rowSublabel}>
+                  Celebrate 3, 7, 14, 21, and 30-day streaks
+                </Text>
+              </View>
+              <Switch
+                value={notifSettings.streakCelebrations}
+                onValueChange={toggleStreakCelebrations}
+                trackColor={{ false: colors.inputBorder, true: colors.accent }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+        </>
+      )}
 
       {waterSettings && (
         <>
