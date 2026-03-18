@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,13 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
-import { lookupBarcode, BarcodeResult } from "../src/services/barcodeService";
+import {
+  lookupBarcode,
+  BarcodeResult,
+  getRecentBarcodes,
+  addRecentBarcode,
+  RecentBarcode,
+} from "../src/services/barcodeService";
 import { addMealEntry } from "../src/utils/storage";
 import { trackUserAction } from "../src/services/sentry";
 import { FoodItem } from "../src/types";
@@ -27,7 +33,12 @@ export default function BarcodeScreen() {
   const [result, setResult] = useState<BarcodeResult | null>(null);
   const [servings, setServings] = useState("1");
   const [saved, setSaved] = useState(false);
+  const [recentBarcodes, setRecentBarcodes] = useState<RecentBarcode[]>([]);
   const lastScannedRef = useRef<string>("");
+
+  useEffect(() => {
+    getRecentBarcodes().then(setRecentBarcodes);
+  }, []);
 
   async function handleBarcodeScanned({
     data,
@@ -105,7 +116,26 @@ export default function BarcodeScreen() {
       overallConfidence: 95,
       userVerified: true,
     });
+    // Cache to recent barcodes for quick re-logging
+    if (lastScannedRef.current && result?.food) {
+      await addRecentBarcode(lastScannedRef.current, result.food);
+      setRecentBarcodes(await getRecentBarcodes());
+    }
     setSaved(true);
+  }
+
+  async function quickLogRecent(recent: RecentBarcode) {
+    trackUserAction("quick_log_recent_barcode");
+    await addMealEntry({
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+      photoUri: null,
+      foods: [recent.food],
+      totalMacros: recent.food.macros,
+      overallConfidence: 95,
+      userVerified: true,
+    });
+    Alert.alert("Logged!", `${recent.food.name} added to today's log.`);
   }
 
   if (!permission) {
@@ -224,6 +254,33 @@ export default function BarcodeScreen() {
             <Text style={styles.btnTextSecondary}>Scan Another</Text>
           </TouchableOpacity>
         </ScrollView>
+      )}
+
+      {/* Recent barcodes for quick re-logging */}
+      {scanning && !loading && recentBarcodes.length > 0 && (
+        <View style={styles.recentContainer}>
+          <Text style={styles.recentTitle}>Recently Scanned</Text>
+          <ScrollView style={styles.recentList} nestedScrollEnabled>
+            {recentBarcodes.map((recent) => (
+              <TouchableOpacity
+                key={recent.barcode}
+                style={styles.recentRow}
+                onPress={() => quickLogRecent(recent)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.recentInfo}>
+                  <Text style={styles.recentName} numberOfLines={1}>
+                    {recent.food.name}
+                  </Text>
+                  <Text style={styles.recentMacros}>
+                    {recent.food.macros.calories} kcal · {recent.food.portion}
+                  </Text>
+                </View>
+                <Text style={styles.recentAddText}>+ Log</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       )}
 
       <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -407,6 +464,54 @@ function makeStyles(colors: ThemeColors) {
       textAlign: "center",
       marginBottom: 30,
       lineHeight: 24,
+    },
+    // Recent barcodes
+    recentContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      maxHeight: 240,
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingTop: 12,
+      paddingHorizontal: 16,
+      paddingBottom: 20,
+    },
+    recentTitle: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.textMuted,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      marginBottom: 8,
+    },
+    recentList: { flex: 1 },
+    recentRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.card,
+      padding: 12,
+      borderRadius: 10,
+      marginBottom: 6,
+    },
+    recentInfo: { flex: 1, marginRight: 12 },
+    recentName: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    recentMacros: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    recentAddText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.accent,
     },
   });
 }

@@ -1,6 +1,9 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FoodItem, MacroBreakdown } from "../types";
 
 const OPEN_FOOD_FACTS_API = "https://world.openfoodfacts.org/api/v2/product";
+const RECENT_BARCODES_KEY = "caltrack_recent_barcodes";
+const MAX_RECENT_BARCODES = 20;
 
 interface OpenFoodFactsNutriments {
   "energy-kcal_100g"?: number;
@@ -89,4 +92,32 @@ export async function lookupBarcode(barcode: string): Promise<BarcodeResult> {
     brand: product.brands,
     servingSize: product.serving_size,
   };
+}
+
+// ─── Recent barcodes cache ───────────────────────────────────────────────────
+
+export interface RecentBarcode {
+  barcode: string;
+  food: FoodItem;
+  scannedAt: number;
+}
+
+export async function getRecentBarcodes(): Promise<RecentBarcode[]> {
+  const raw = await AsyncStorage.getItem(RECENT_BARCODES_KEY);
+  if (!raw) return [];
+  return JSON.parse(raw) as RecentBarcode[];
+}
+
+export async function addRecentBarcode(
+  barcode: string,
+  food: FoodItem
+): Promise<void> {
+  const recent = await getRecentBarcodes();
+  // Remove duplicate if exists
+  const filtered = recent.filter((r) => r.barcode !== barcode);
+  // Add to front
+  filtered.unshift({ barcode, food, scannedAt: Date.now() });
+  // Keep only last N
+  const trimmed = filtered.slice(0, MAX_RECENT_BARCODES);
+  await AsyncStorage.setItem(RECENT_BARCODES_KEY, JSON.stringify(trimmed));
 }
