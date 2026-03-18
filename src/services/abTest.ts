@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { safeParse } from "../utils/safeParse";
 
 const AB_TEST_KEY = "caltrack_ab_test_assignments";
 
@@ -11,7 +12,7 @@ interface ABTestAssignments {
 async function getAssignments(): Promise<ABTestAssignments> {
   const raw = await AsyncStorage.getItem(AB_TEST_KEY);
   if (!raw) return {};
-  return JSON.parse(raw) as ABTestAssignments;
+  return safeParse<ABTestAssignments>(raw, {}, "getABTestAssignments");
 }
 
 async function saveAssignments(assignments: ABTestAssignments): Promise<void> {

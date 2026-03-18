@@ -5,6 +5,7 @@ import AppleHealthKit, {
 } from "react-native-health";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MacroBreakdown, HealthKitSettings, WaterSettings } from "../types";
+import { safeParse } from "../utils/safeParse";
 
 const HEALTHKIT_SETTINGS_KEY = "caltrack_healthkit_settings";
 
@@ -43,14 +44,15 @@ export function initHealthKit(): Promise<boolean> {
 
 export async function getHealthKitSettings(): Promise<HealthKitSettings> {
   const raw = await AsyncStorage.getItem(HEALTHKIT_SETTINGS_KEY);
-  if (raw) return JSON.parse(raw);
-  return {
+  const defaults: HealthKitSettings = {
     enabled: false,
     writeNutrition: true,
     writeWater: true,
     readWeight: true,
     readActivity: true,
   };
+  if (raw) return safeParse<HealthKitSettings>(raw, defaults, "getHealthKitSettings");
+  return defaults;
 }
 
 export async function saveHealthKitSettings(

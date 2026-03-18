@@ -1,11 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserCorrection } from "../types";
+import { safeParse } from "./safeParse";
 
 const CORRECTIONS_KEY = "caltrack_corrections";
 
 export async function getCorrections(): Promise<UserCorrection[]> {
   const raw = await AsyncStorage.getItem(CORRECTIONS_KEY);
-  return raw ? JSON.parse(raw) : [];
+  return raw ? safeParse<UserCorrection[]>(raw, [], "getCorrections") : [];
 }
 
 export async function saveCorrection(correction: UserCorrection): Promise<void> {

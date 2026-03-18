@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DailyLog, MacroBreakdown, MealEntry } from "../types";
+import { safeParse } from "./safeParse";
 import { writeMealToHealthKit } from "../services/healthKitService";
 import { syncWidgetData } from "../services/widgetService";
 import { checkAndCelebrateStreak } from "../services/mealReminders";
@@ -31,8 +32,9 @@ function sumMacros(meals: MealEntry[]): MacroBreakdown {
 export async function getDailyLog(date: Date = new Date()): Promise<DailyLog> {
   const key = STORAGE_KEY_PREFIX + getDateKey(date);
   const raw = await AsyncStorage.getItem(key);
-  if (raw) return JSON.parse(raw);
-  return { date: getDateKey(date), meals: [], totalMacros: emptyMacros() };
+  const empty = { date: getDateKey(date), meals: [], totalMacros: emptyMacros() };
+  if (raw) return safeParse<DailyLog>(raw, empty, "getDailyLog");
+  return empty;
 }
 
 export async function addMealEntry(meal: MealEntry): Promise<DailyLog> {

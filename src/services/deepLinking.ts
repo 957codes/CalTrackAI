@@ -1,6 +1,7 @@
 import * as Linking from "expo-linking";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { trackUserAction } from "./sentry";
+import { safeParse } from "../utils/safeParse";
 
 // ── Storage keys ──────────────────────────────────────────────────────
 const ATTRIBUTION_KEY = "caltrack_attribution";
@@ -102,7 +103,7 @@ export async function saveAttribution(attribution: Attribution): Promise<void> {
 export async function getAttribution(): Promise<Attribution | null> {
   const raw = await AsyncStorage.getItem(ATTRIBUTION_KEY);
   if (!raw) return null;
-  return JSON.parse(raw) as Attribution;
+  return safeParse<Attribution | null>(raw, null, "getAttribution");
 }
 
 // ── Deferred Deep Links ───────────────────────────────────────────────
@@ -123,7 +124,8 @@ export async function consumeDeferredDeepLink(): Promise<DeferredDeepLink | null
   const raw = await AsyncStorage.getItem(DEFERRED_DEEP_LINK_KEY);
   if (!raw) return null;
   await AsyncStorage.removeItem(DEFERRED_DEEP_LINK_KEY);
-  const link = JSON.parse(raw) as DeferredDeepLink;
+  const link = safeParse<DeferredDeepLink | null>(raw, null, "consumeDeferredDeepLink");
+  if (!link) return null;
   // Expire after 24 hours
   if (Date.now() - link.timestamp > 24 * 60 * 60 * 1000) return null;
   return link;

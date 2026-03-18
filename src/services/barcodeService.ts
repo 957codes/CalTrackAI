@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FoodItem, MacroBreakdown } from "../types";
 import { isOnline } from "./networkService";
+import { safeParse } from "../utils/safeParse";
 
 const OPEN_FOOD_FACTS_API = "https://world.openfoodfacts.org/api/v2/product";
 const RECENT_BARCODES_KEY = "caltrack_recent_barcodes";
@@ -122,7 +123,7 @@ export interface RecentBarcode {
 export async function getRecentBarcodes(): Promise<RecentBarcode[]> {
   const raw = await AsyncStorage.getItem(RECENT_BARCODES_KEY);
   if (!raw) return [];
-  return JSON.parse(raw) as RecentBarcode[];
+  return safeParse<RecentBarcode[]>(raw, [], "getRecentBarcodes");
 }
 
 export async function addRecentBarcode(

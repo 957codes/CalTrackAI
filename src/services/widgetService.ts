@@ -1,6 +1,7 @@
 import { NativeModules, Platform } from "react-native";
 import { DailyLog, UserGoals } from "../types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { safeParse } from "../utils/safeParse";
 
 const { WidgetDataBridge } = NativeModules;
 
@@ -31,7 +32,7 @@ async function calculateStreak(): Promise<number> {
     const key = "caltrack_log_" + d.toISOString().split("T")[0];
     const raw = await AsyncStorage.getItem(key);
     if (raw) {
-      const log = JSON.parse(raw);
+      const log = safeParse<{ meals?: unknown[] }>(raw, { meals: [] }, "calculateStreak");
       if (log.meals && log.meals.length > 0) {
         streak++;
       } else {
@@ -49,9 +50,10 @@ export async function refreshWidget(): Promise<void> {
   try {
     const today = new Date().toISOString().split("T")[0];
     const logRaw = await AsyncStorage.getItem("caltrack_log_" + today);
+    const emptyLog: DailyLog = { date: today, meals: [], totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 } };
     const log: DailyLog = logRaw
-      ? JSON.parse(logRaw)
-      : { date: today, meals: [], totalMacros: { calories: 0, protein: 0, carbs: 0, fat: 0 } };
+      ? safeParse<DailyLog>(logRaw, emptyLog, "refreshWidget")
+      : emptyLog;
     await syncWidgetData(log);
   } catch {
     // Non-blocking
@@ -63,14 +65,14 @@ export async function syncWidgetData(log: DailyLog): Promise<void> {
 
   try {
     const goalsRaw = await AsyncStorage.getItem("caltrack_user_goals");
-    const goals: UserGoals | null = goalsRaw ? JSON.parse(goalsRaw) : null;
+    const goals: UserGoals | null = goalsRaw ? safeParse<UserGoals | null>(goalsRaw, null, "syncWidgetData.goals") : null;
 
     // Water data
     const today = new Date().toISOString().split("T")[0];
     const waterRaw = await AsyncStorage.getItem("caltrack_water_" + today);
-    const waterLog = waterRaw ? JSON.parse(waterRaw) : null;
+    const waterLog = waterRaw ? safeParse<{ totalOz?: number } | null>(waterRaw, null, "syncWidgetData.water") : null;
     const waterSettingsRaw = await AsyncStorage.getItem("caltrack_water_settings");
-    const waterSettings = waterSettingsRaw ? JSON.parse(waterSettingsRaw) : null;
+    const waterSettings = waterSettingsRaw ? safeParse<{ dailyGoalOz?: number } | null>(waterSettingsRaw, null, "syncWidgetData.waterSettings") : null;
 
     const lastMeal = log.meals.length > 0 ? log.meals[log.meals.length - 1] : null;
     const lastMealName = lastMeal

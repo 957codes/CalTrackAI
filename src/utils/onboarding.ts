@@ -6,6 +6,7 @@ import {
   ActivityLevel,
   Gender,
 } from "../types";
+import { safeParse } from "./safeParse";
 
 const ONBOARDING_KEY = "caltrack_onboarding_complete";
 const GOALS_KEY = "caltrack_user_goals";
@@ -27,7 +28,7 @@ export async function saveUserGoals(goals: UserGoals): Promise<void> {
 export async function getUserGoals(): Promise<UserGoals | null> {
   const value = await AsyncStorage.getItem(GOALS_KEY);
   if (!value) return null;
-  return JSON.parse(value) as UserGoals;
+  return safeParse<UserGoals | null>(value, null, "getUserGoals");
 }
 
 export async function saveUserProfile(profile: UserProfile): Promise<void> {
@@ -37,7 +38,7 @@ export async function saveUserProfile(profile: UserProfile): Promise<void> {
 export async function getUserProfile(): Promise<UserProfile | null> {
   const value = await AsyncStorage.getItem(PROFILE_KEY);
   if (!value) return null;
-  return JSON.parse(value) as UserProfile;
+  return safeParse<UserProfile | null>(value, null, "getUserProfile");
 }
 
 const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {

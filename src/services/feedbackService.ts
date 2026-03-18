@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FeedbackSubmission, FeedbackStatus } from "../types";
 import { trackUserAction } from "./sentry";
+import { safeParse } from "../utils/safeParse";
 
 const FEEDBACK_QUEUE_KEY = "caltrack_feedback_queue";
 const FEEDBACK_CONFIG_KEY = "caltrack_feedback_config";
@@ -15,7 +16,7 @@ export interface FeedbackConfig {
  */
 export async function getFeedbackConfig(): Promise<FeedbackConfig> {
   const raw = await AsyncStorage.getItem(FEEDBACK_CONFIG_KEY);
-  return raw ? JSON.parse(raw) : {};
+  return raw ? safeParse<FeedbackConfig>(raw, {}, "getFeedbackConfig") : {};
 }
 
 export async function saveFeedbackConfig(config: FeedbackConfig): Promise<void> {
@@ -27,7 +28,7 @@ export async function saveFeedbackConfig(config: FeedbackConfig): Promise<void> 
  */
 export async function getFeedbackQueue(): Promise<FeedbackSubmission[]> {
   const raw = await AsyncStorage.getItem(FEEDBACK_QUEUE_KEY);
-  return raw ? JSON.parse(raw) : [];
+  return raw ? safeParse<FeedbackSubmission[]>(raw, [], "getFeedbackQueue") : [];
 }
 
 /**

@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WeeklyMealPlan, GroceryItem } from "../types";
+import { safeParse } from "./safeParse";
 
 const PLANS_KEY = "caltrack_meal_plans";
 const ACTIVE_PLAN_KEY = "caltrack_active_meal_plan";
@@ -19,7 +20,7 @@ export async function saveMealPlan(plan: WeeklyMealPlan): Promise<void> {
 export async function getAllMealPlans(): Promise<WeeklyMealPlan[]> {
   const raw = await AsyncStorage.getItem(PLANS_KEY);
   if (!raw) return [];
-  return JSON.parse(raw) as WeeklyMealPlan[];
+  return safeParse<WeeklyMealPlan[]>(raw, [], "getAllMealPlans");
 }
 
 export async function getMealPlan(id: string): Promise<WeeklyMealPlan | null> {
@@ -89,7 +90,7 @@ export async function swapMeal(
 export async function getGroceryList(planId: string): Promise<GroceryItem[]> {
   const raw = await AsyncStorage.getItem(GROCERY_KEY_PREFIX + planId);
   if (!raw) return [];
-  return JSON.parse(raw) as GroceryItem[];
+  return safeParse<GroceryItem[]>(raw, [], "getGroceryList");
 }
 
 export async function saveGroceryList(

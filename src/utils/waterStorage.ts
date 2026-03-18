@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DailyWaterLog, WaterEntry, WaterSettings } from "../types";
+import { safeParse } from "./safeParse";
 import { writeWaterToHealthKit } from "../services/healthKitService";
 import { refreshWidget } from "../services/widgetService";
 
@@ -23,8 +24,9 @@ export async function getDailyWaterLog(
 ): Promise<DailyWaterLog> {
   const key = WATER_LOG_PREFIX + getDateKey(date);
   const raw = await AsyncStorage.getItem(key);
-  if (raw) return JSON.parse(raw);
-  return { date: getDateKey(date), entries: [], totalOz: 0 };
+  const empty: DailyWaterLog = { date: getDateKey(date), entries: [], totalOz: 0 };
+  if (raw) return safeParse<DailyWaterLog>(raw, empty, "getDailyWaterLog");
+  return empty;
 }
 
 export async function addWaterEntry(amountOz: number): Promise<DailyWaterLog> {
@@ -73,7 +75,7 @@ export async function getWeekWaterLogs(): Promise<DailyWaterLog[]> {
 
 export async function getWaterSettings(): Promise<WaterSettings> {
   const raw = await AsyncStorage.getItem(WATER_SETTINGS_KEY);
-  if (raw) return JSON.parse(raw);
+  if (raw) return safeParse<WaterSettings>(raw, { ...DEFAULT_WATER_SETTINGS }, "getWaterSettings");
   return { ...DEFAULT_WATER_SETTINGS };
 }
 

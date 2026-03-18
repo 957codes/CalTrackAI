@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NotificationSettings } from "../types";
+import { safeParse } from "../utils/safeParse";
 import {
   getNotificationSettings,
 } from "../utils/notificationStorage";
@@ -118,7 +119,7 @@ async function calculateStreak(): Promise<number> {
     const key = "caltrack_log_" + d.toISOString().split("T")[0];
     const raw = await AsyncStorage.getItem(key);
     if (raw) {
-      const log = JSON.parse(raw);
+      const log = safeParse<{ meals?: unknown[] }>(raw, { meals: [] }, "mealReminders.calculateStreak");
       if (log.meals && log.meals.length > 0) {
         streak++;
       } else {
@@ -149,7 +150,7 @@ export async function checkAndCelebrateStreak(): Promise<void> {
     "caltrack_log_" + new Date().toISOString().split("T")[0];
   const todayRaw = await AsyncStorage.getItem(todayKey);
   const todayHasMeals =
-    todayRaw && JSON.parse(todayRaw).meals?.length > 0;
+    todayRaw && safeParse<{ meals?: unknown[] }>(todayRaw, { meals: [] }, "mealReminders.todayCheck").meals?.length! > 0;
   if (!todayHasMeals) return;
 
   const pastStreak = await calculateStreak();

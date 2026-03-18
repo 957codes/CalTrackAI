@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FoodItem } from "../types";
 import { AnalysisResult } from "../services/foodAnalysis";
+import { safeParse } from "./safeParse";
 
 const ANALYSIS_CACHE_KEY = "caltrack_analysis_cache";
 const MAX_CACHED_ANALYSES = 50;
@@ -25,7 +26,7 @@ export async function getCachedAnalysis(
   const key = imageFingerprint(base64Image);
   const raw = await AsyncStorage.getItem(ANALYSIS_CACHE_KEY);
   if (!raw) return null;
-  const cache: CachedAnalysis[] = JSON.parse(raw);
+  const cache: CachedAnalysis[] = safeParse<CachedAnalysis[]>(raw, [], "getCachedAnalysis");
   const hit = cache.find((c) => c.imageKey === key);
   return hit ? hit.result : null;
 }
@@ -36,7 +37,7 @@ export async function cacheAnalysis(
 ): Promise<void> {
   const key = imageFingerprint(base64Image);
   const raw = await AsyncStorage.getItem(ANALYSIS_CACHE_KEY);
-  const cache: CachedAnalysis[] = raw ? JSON.parse(raw) : [];
+  const cache: CachedAnalysis[] = raw ? safeParse<CachedAnalysis[]>(raw, [], "cacheAnalysis") : [];
 
   // Remove existing entry for same image
   const filtered = cache.filter((c) => c.imageKey !== key);

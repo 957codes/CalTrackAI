@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MealEntry } from "../types";
+import { safeParse } from "./safeParse";
 import { isOnline, onConnectivityChange } from "../services/networkService";
 import { writeMealToHealthKit } from "../services/healthKitService";
 import { syncWidgetData } from "../services/widgetService";
@@ -20,7 +21,7 @@ export interface SyncItem {
 
 async function getQueue(): Promise<SyncItem[]> {
   const raw = await AsyncStorage.getItem(SYNC_QUEUE_KEY);
-  return raw ? JSON.parse(raw) : [];
+  return raw ? safeParse<SyncItem[]>(raw, [], "getSyncQueue") : [];
 }
 
 async function saveQueue(queue: SyncItem[]): Promise<void> {

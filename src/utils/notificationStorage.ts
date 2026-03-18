@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NotificationSettings } from "../types";
+import { safeParse } from "./safeParse";
 
 const STORAGE_KEY = "caltrack_notification_settings";
 
@@ -17,7 +18,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 
 export async function getNotificationSettings(): Promise<NotificationSettings> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  if (raw) return { ...DEFAULT_SETTINGS, ...safeParse<Partial<NotificationSettings>>(raw, {}, "getNotificationSettings") };
   return DEFAULT_SETTINGS;
 }
 
