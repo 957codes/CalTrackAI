@@ -106,6 +106,41 @@ export interface NotificationSettings {
   inactivityNudgeHour: number; // 24h format, default 14 (2pm)
 }
 
+// Meal planning types
+export interface PlannedMeal {
+  id: string;
+  name: string;
+  mealType: "breakfast" | "lunch" | "dinner" | "snack";
+  foods: FoodItem[];
+  totalMacros: MacroBreakdown;
+}
+
+export interface DayPlan {
+  date: string; // YYYY-MM-DD
+  meals: PlannedMeal[];
+  totalMacros: MacroBreakdown;
+}
+
+export interface WeeklyMealPlan {
+  id: string;
+  name: string;
+  createdAt: number;
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
+  dietaryPreference: DietaryPreference;
+  days: DayPlan[];
+  isFavorite: boolean;
+}
+
+export interface GroceryItem {
+  name: string;
+  quantity: string;
+  category: string;
+  checked: boolean;
+}
+
 export interface FeedbackSubmission {
   id: string;
   category: FeedbackCategory;
