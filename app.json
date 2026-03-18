@@ -15,9 +15,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.caltrackai.app",
+      "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "CalTrack AI uses your camera to scan meals and estimate calories.",
-        "NSPhotoLibraryUsageDescription": "CalTrack AI accesses your photo library to analyze meal photos."
+        "NSPhotoLibraryUsageDescription": "CalTrack AI accesses your photo library to analyze meal photos.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
