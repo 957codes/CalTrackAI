@@ -50,6 +50,7 @@ jest.mock("react-native", () => {
     TextInput: mockComponent("TextInput"),
     Modal: mockComponent("Modal"),
     ActivityIndicator: mockComponent("ActivityIndicator"),
+    KeyboardAvoidingView: mockComponent("KeyboardAvoidingView"),
     Alert: { alert: jest.fn() },
     useColorScheme: jest.fn(() => "dark"),
   };
