@@ -1,5 +1,7 @@
 import { FoodItem, MacroBreakdown } from "../types";
 import { Sentry, trackUserAction } from "./sentry";
+import { isOnline } from "./networkService";
+import { getCachedAnalysis, cacheAnalysis } from "../utils/offlineCache";
 
 const ANTHROPIC_API_KEY = ""; // Set via env or config in production
 
@@ -7,6 +9,8 @@ export interface AnalysisResult {
   foods: FoodItem[];
   totalMacros: MacroBreakdown;
   overallConfidence: number;
+  /** True when result came from local cache rather than API */
+  fromCache?: boolean;
 }
 
 const FOOD_ANALYSIS_PROMPT = `You are a nutrition analysis AI. Analyze this food photo carefully.
@@ -32,8 +36,24 @@ RULES:
 export async function analyzeFoodPhoto(
   base64Image: string
 ): Promise<AnalysisResult> {
+  // Check cache first (works offline and saves API calls)
+  try {
+    const cached = await getCachedAnalysis(base64Image);
+    if (cached) {
+      trackUserAction("ai_analysis_cache_hit");
+      return { ...cached, fromCache: true };
+    }
+  } catch {
+    // Cache miss — continue to API
+  }
+
   if (!ANTHROPIC_API_KEY) {
     trackUserAction("ai_analysis_start", { mode: "mock" });
+    return getMockAnalysis();
+  }
+
+  if (!isOnline()) {
+    trackUserAction("ai_analysis_offline");
     return getMockAnalysis();
   }
 
@@ -92,6 +112,8 @@ export async function analyzeFoodPhoto(
         itemCount: String(result.foods.length),
         totalCalories: String(result.totalMacros.calories),
       });
+      // Cache for offline use (non-blocking)
+      cacheAnalysis(base64Image, result).catch(() => {});
       return result;
     } catch {
       Sentry.captureMessage("AI analysis JSON parse failed", {

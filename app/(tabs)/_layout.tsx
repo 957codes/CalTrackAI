@@ -2,11 +2,13 @@ import { Tabs } from "expo-router";
 import { View, Text } from "react-native";
 import { useTheme } from "../../src/theme";
 import { FeedbackFAB } from "../../src/components/FeedbackFAB";
+import { OfflineBanner } from "../../src/components/OfflineBanner";
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
     Camera: "📷",
     Log: "📋",
+    "Meal Plan": "🍽️",
     Dashboard: "📊",
     More: "⚙️",
   };
@@ -22,6 +24,7 @@ export default function TabLayout() {
 
   return (
     <View style={{ flex: 1 }}>
+      <OfflineBanner />
       <Tabs
         screenOptions={{
           headerStyle: { backgroundColor: colors.card },
@@ -55,6 +58,16 @@ export default function TabLayout() {
             headerTitle: "Today's Meals",
             tabBarIcon: ({ focused }) => (
               <TabIcon label="Log" focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="mealplan"
+          options={{
+            title: "Meal Plan",
+            headerTitle: "Meal Planning",
+            tabBarIcon: ({ focused }) => (
+              <TabIcon label="Meal Plan" focused={focused} />
             ),
           }}
         />

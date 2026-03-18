@@ -3,6 +3,8 @@ import { DailyLog, MacroBreakdown, MealEntry } from "../types";
 import { writeMealToHealthKit } from "../services/healthKitService";
 import { syncWidgetData } from "../services/widgetService";
 import { checkAndCelebrateStreak } from "../services/mealReminders";
+import { isOnline } from "../services/networkService";
+import { enqueue } from "./syncQueue";
 
 const STORAGE_KEY_PREFIX = "caltrack_log_";
 
@@ -41,10 +43,18 @@ export async function addMealEntry(meal: MealEntry): Promise<DailyLog> {
   const key = STORAGE_KEY_PREFIX + getDateKey(today);
   await AsyncStorage.setItem(key, JSON.stringify(log));
 
-  // Sync to Apple Health (non-blocking — failure doesn't affect meal save)
-  writeMealToHealthKit(meal.totalMacros, meal.timestamp).catch(() => {});
+  if (isOnline()) {
+    // Sync to Apple Health (non-blocking — failure doesn't affect meal save)
+    writeMealToHealthKit(meal.totalMacros, meal.timestamp).catch(() => {});
+  } else {
+    // Queue HealthKit sync for when connectivity returns
+    enqueue({
+      type: "meal_healthkit",
+      payload: { macros: meal.totalMacros, timestamp: meal.timestamp },
+    }).catch(() => {});
+  }
 
-  // Sync to home screen widget (non-blocking)
+  // Sync to home screen widget (non-blocking, works offline via native bridge)
   syncWidgetData(log).catch(() => {});
 
   // Check for streak milestones (non-blocking)

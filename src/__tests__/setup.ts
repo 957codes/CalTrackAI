@@ -51,6 +51,7 @@ jest.mock("react-native", () => {
     Modal: mockComponent("Modal"),
     ActivityIndicator: mockComponent("ActivityIndicator"),
     KeyboardAvoidingView: mockComponent("KeyboardAvoidingView"),
+    FlatList: mockComponent("FlatList"),
     Alert: { alert: jest.fn() },
     useColorScheme: jest.fn(() => "dark"),
   };
@@ -123,6 +124,14 @@ jest.mock("expo-constants", () => ({
       },
     },
   },
+}));
+
+// Mock @react-native-community/netinfo
+jest.mock("@react-native-community/netinfo", () => ({
+  addEventListener: jest.fn(() => jest.fn()),
+  fetch: jest.fn(() =>
+    Promise.resolve({ isConnected: true, isInternetReachable: true })
+  ),
 }));
 
 // Expose store for tests to clear between runs

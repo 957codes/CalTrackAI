@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { FoodItem, MacroBreakdown } from "../types";
+import { isOnline } from "./networkService";
 
 const OPEN_FOOD_FACTS_API = "https://world.openfoodfacts.org/api/v2/product";
 const RECENT_BARCODES_KEY = "caltrack_recent_barcodes";
@@ -33,6 +34,22 @@ export interface BarcodeResult {
 }
 
 export async function lookupBarcode(barcode: string): Promise<BarcodeResult> {
+  // Check local cache first (works offline)
+  const recent = await getRecentBarcodes();
+  const cached = recent.find((r) => r.barcode === barcode);
+  if (cached) {
+    return {
+      found: true,
+      food: cached.food,
+      productName: cached.food.name,
+    };
+  }
+
+  // If offline and not cached, return not found
+  if (!isOnline()) {
+    return { found: false };
+  }
+
   const url = `${OPEN_FOOD_FACTS_API}/${encodeURIComponent(barcode)}.json?fields=product_name,brands,serving_size,serving_quantity,nutriments`;
   const response = await fetch(url);
 

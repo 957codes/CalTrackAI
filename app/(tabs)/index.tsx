@@ -10,6 +10,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -17,12 +18,15 @@ import { analyzeFoodPhoto } from "../../src/services/foodAnalysis";
 import { addMealEntry } from "../../src/utils/storage";
 import { saveCorrection } from "../../src/utils/corrections";
 import { trackUserAction } from "../../src/services/sentry";
+import { useIsOnline } from "../../src/services/networkService";
+import { searchCommonFoods } from "../../src/data/commonFoods";
 import { FoodItem, MacroBreakdown } from "../../src/types";
 import { useTheme, ThemeColors } from "../../src/theme";
 
 export default function CameraScreen() {
   const colors = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const online = useIsOnline();
 
   const [loading, setLoading] = useState(false);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -33,6 +37,8 @@ export default function CameraScreen() {
   const [userVerified, setUserVerified] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editCalories, setEditCalories] = useState("");
+  const [offlineSearch, setOfflineSearch] = useState("");
+  const [searchResults, setSearchResults] = useState<FoodItem[]>([]);
 
   async function takePhoto() {
     trackUserAction("take_photo");
@@ -156,6 +162,26 @@ export default function CameraScreen() {
     setSaved(true);
   }
 
+  function handleOfflineSearch(query: string) {
+    setOfflineSearch(query);
+    if (query.trim().length >= 2) {
+      setSearchResults(searchCommonFoods(query));
+    } else {
+      setSearchResults([]);
+    }
+  }
+
+  function addOfflineFood(food: FoodItem) {
+    trackUserAction("add_offline_food", { name: food.name });
+    const current = foods || [];
+    const updated = [...current, food];
+    setFoods(updated);
+    recalcTotals(updated);
+    setOverallConfidence(90);
+    setOfflineSearch("");
+    setSearchResults([]);
+  }
+
   function reset() {
     setPhotoUri(null);
     setFoods(null);
@@ -164,6 +190,8 @@ export default function CameraScreen() {
     setSaved(false);
     setUserVerified(false);
     setEditingIndex(null);
+    setOfflineSearch("");
+    setSearchResults([]);
   }
 
   return (
@@ -193,6 +221,75 @@ export default function CameraScreen() {
           <TouchableOpacity style={styles.secondaryBtn} onPress={pickImage}>
             <Text style={styles.btnTextSecondary}>Choose from Gallery</Text>
           </TouchableOpacity>
+
+          {/* Offline food search */}
+          {!online && (
+            <View style={styles.offlineSection}>
+              <Text style={styles.offlineTitle}>Search Foods Offline</Text>
+              <Text style={styles.offlineHint}>
+                No connection — search 500+ common foods to log manually
+              </Text>
+              <TextInput
+                style={styles.offlineInput}
+                placeholder="Search foods (e.g. chicken breast, rice)..."
+                placeholderTextColor={colors.textMuted}
+                value={offlineSearch}
+                onChangeText={handleOfflineSearch}
+                autoCorrect={false}
+              />
+              {searchResults.length > 0 && (
+                <View style={styles.searchResultsList}>
+                  {searchResults.slice(0, 8).map((item, i) => (
+                    <TouchableOpacity
+                      key={i}
+                      style={styles.searchResultRow}
+                      onPress={() => addOfflineFood(item)}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.searchResultName}>{item.name}</Text>
+                        <Text style={styles.searchResultPortion}>{item.portion}</Text>
+                      </View>
+                      <Text style={styles.searchResultCals}>{item.macros.calories} kcal</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              {offlineSearch.trim().length >= 2 && searchResults.length === 0 && (
+                <Text style={styles.noResults}>No matching foods found</Text>
+              )}
+            </View>
+          )}
+
+          {/* Show accumulated offline foods */}
+          {foods && foods.length > 0 && !photoUri && (
+            <View style={styles.resultsBox}>
+              <Text style={styles.resultsTitle}>Added Foods</Text>
+              <View style={styles.macroRow}>
+                <MacroCard label="Calories" value={totalMacros?.calories || 0} unit="kcal" color={colors.calories} styles={styles} />
+                <MacroCard label="Protein" value={totalMacros?.protein || 0} unit="g" color={colors.protein} styles={styles} />
+                <MacroCard label="Carbs" value={totalMacros?.carbs || 0} unit="g" color={colors.carbs} styles={styles} />
+                <MacroCard label="Fat" value={totalMacros?.fat || 0} unit="g" color={colors.fat} styles={styles} />
+              </View>
+              <View style={styles.foodList}>
+                {foods.map((f, i) => (
+                  <View key={i} style={styles.foodRow}>
+                    <View style={styles.foodInfo}>
+                      <Text style={styles.foodName}>{f.name}</Text>
+                      <Text style={styles.foodPortion}>{f.portion}</Text>
+                    </View>
+                    <Text style={styles.foodCals}>{f.macros.calories} kcal</Text>
+                  </View>
+                ))}
+              </View>
+              {!saved ? (
+                <TouchableOpacity style={styles.primaryBtn} onPress={saveEntry}>
+                  <Text style={styles.btnText}>Save to Log</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.savedText}>Saved to today's log!</Text>
+              )}
+            </View>
+          )}
         </View>
       ) : (
         <View>
@@ -478,5 +575,33 @@ function makeStyles(colors: ThemeColors) {
     modalCancelText: { color: colors.textMuted, fontSize: 15 },
     modalSave: { backgroundColor: colors.accent, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 10 },
     modalSaveText: { color: colors.accentOnAccent, fontSize: 15, fontWeight: "700" },
+    // Offline search
+    offlineSection: { marginTop: 24, width: "100%" },
+    offlineTitle: { fontSize: 18, fontWeight: "700", color: colors.text, marginBottom: 4 },
+    offlineHint: { fontSize: 13, color: colors.textMuted, marginBottom: 12 },
+    offlineInput: {
+      backgroundColor: colors.inputBackground,
+      color: colors.text,
+      fontSize: 16,
+      padding: 14,
+      borderRadius: 12,
+      borderColor: colors.inputBorder,
+      borderWidth: 1,
+      marginBottom: 8,
+    },
+    searchResultsList: { marginBottom: 12 },
+    searchResultRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      padding: 12,
+      borderRadius: 10,
+      marginBottom: 6,
+    },
+    searchResultName: { color: colors.text, fontWeight: "600", fontSize: 14 },
+    searchResultPortion: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+    searchResultCals: { color: colors.calories, fontWeight: "600", fontSize: 14 },
+    noResults: { color: colors.textMuted, textAlign: "center", marginTop: 8, fontSize: 14 },
   });
 }
