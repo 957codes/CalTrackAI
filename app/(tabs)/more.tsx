@@ -88,6 +88,16 @@ export default function MoreScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.sectionTitle}>Upgrade</Text>
+      <View style={styles.section}>
+        <SettingsRow
+          label="CalTrack AI Pro"
+          sublabel="Unlock all features — 7-day free trial"
+          onPress={() => router.push("/paywall")}
+          styles={styles}
+        />
+      </View>
+
       <Text style={styles.sectionTitle}>Share</Text>
       <View style={styles.section}>
         <SettingsRow
