@@ -1,12 +1,25 @@
 import { useEffect, useState } from "react";
-import { Stack, router } from "expo-router";
+import { Stack, router, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { isOnboardingComplete } from "../src/utils/onboarding";
+import { initSentry, trackScreenNavigation } from "../src/services/sentry";
+import { ErrorBoundary } from "../src/components/ErrorBoundary";
+
+// Initialize Sentry as early as possible
+initSentry();
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const pathname = usePathname();
+
+  // Track screen navigation for Sentry breadcrumbs
+  useEffect(() => {
+    if (pathname) {
+      trackScreenNavigation(pathname);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     isOnboardingComplete().then((complete) => {
@@ -34,13 +47,13 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
       </Stack>
-    </>
+    </ErrorBoundary>
   );
 }
 

@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { analyzeFoodPhoto } from "../../src/services/foodAnalysis";
 import { addMealEntry } from "../../src/utils/storage";
+import { trackUserAction } from "../../src/services/sentry";
 import { FoodItem, MacroBreakdown } from "../../src/types";
 
 export default function CameraScreen() {
@@ -22,6 +23,7 @@ export default function CameraScreen() {
   const [saved, setSaved] = useState(false);
 
   async function takePhoto() {
+    trackUserAction("take_photo");
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission needed", "Camera access is required to scan meals.");
@@ -37,6 +39,7 @@ export default function CameraScreen() {
   }
 
   async function pickImage() {
+    trackUserAction("pick_image_gallery");
     const result = await ImagePicker.launchImageLibraryAsync({
       base64: true,
       quality: 0.7,
@@ -64,6 +67,7 @@ export default function CameraScreen() {
   }
 
   async function saveEntry() {
+    trackUserAction("save_meal_entry");
     if (!foods || !totalMacros) return;
     await addMealEntry({
       id: Date.now().toString(),

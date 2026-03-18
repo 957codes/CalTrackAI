@@ -47,6 +47,13 @@
         {
           "photosPermission": "CalTrack AI accesses your photos to analyze meals."
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "caltrack-ai",
+          "project": "caltrack-mobile"
+        }
       ]
     ]
   }
