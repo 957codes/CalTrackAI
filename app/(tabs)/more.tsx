@@ -88,6 +88,16 @@ export default function MoreScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.sectionTitle}>Share</Text>
+      <View style={styles.section}>
+        <SettingsRow
+          label="Share with Friends"
+          sublabel="Get your referral link and invite others"
+          onPress={() => router.push("/referral")}
+          styles={styles}
+        />
+      </View>
+
       <Text style={styles.sectionTitle}>Legal</Text>
       <View style={styles.section}>
         <SettingsRow

@@ -23,6 +23,10 @@
         "NSHealthShareUsageDescription": "CalTrack AI reads your weight and activity data to estimate your daily calorie needs.",
         "NSHealthUpdateUsageDescription": "CalTrack AI writes your meal calories, protein, carbs, and fat to Apple Health so all your nutrition data stays in one place."
       },
+      "associatedDomains": [
+        "applinks:caltrack.ai",
+        "applinks:www.caltrack.ai"
+      ],
       "entitlements": {
         "com.apple.developer.healthkit": true,
         "com.apple.developer.healthkit.background-delivery": false,
@@ -39,7 +43,26 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.caltrackai.app"
+      "package": "com.caltrackai.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "caltrack.ai",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "www.caltrack.ai",
+              "pathPrefix": "/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
