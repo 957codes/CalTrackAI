@@ -1,6 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Switch, Platform } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  isHealthKitAvailable,
+  initHealthKit,
+  getHealthKitSettings,
+  saveHealthKitSettings,
+} from "../../src/services/healthKitService";
+import { HealthKitSettings } from "../../src/types";
 
 function SettingsRow({
   label,
@@ -27,6 +35,34 @@ function SettingsRow({
 }
 
 export default function MoreScreen() {
+  const [hkSettings, setHkSettings] = useState<HealthKitSettings | null>(null);
+  const showHealthKit = isHealthKitAvailable();
+
+  useEffect(() => {
+    if (showHealthKit) {
+      getHealthKitSettings().then(setHkSettings);
+    }
+  }, []);
+
+  async function toggleHealthKit(enabled: boolean) {
+    if (enabled) {
+      const granted = await initHealthKit();
+      if (!granted) {
+        Alert.alert(
+          "Health Access Denied",
+          "Please enable Health access for CalTrack AI in Settings > Privacy & Security > Health."
+        );
+        return;
+      }
+    }
+    const updated: HealthKitSettings = {
+      ...(hkSettings ?? { enabled: false, writeNutrition: true, readWeight: true, readActivity: true }),
+      enabled,
+    };
+    await saveHealthKitSettings(updated);
+    setHkSettings(updated);
+  }
+
   const handleDeleteData = () => {
     Alert.alert(
       "Delete All Data",
@@ -69,6 +105,26 @@ export default function MoreScreen() {
           onPress={() => router.push("/faq")}
         />
       </View>
+
+      {showHealthKit && (
+        <>
+          <Text style={styles.sectionTitle}>Apple Health</Text>
+          <View style={styles.section}>
+            <View style={styles.toggleRow}>
+              <View>
+                <Text style={styles.rowLabel}>Sync to Health</Text>
+                <Text style={styles.rowSublabel}>Write meals and read weight/activity</Text>
+              </View>
+              <Switch
+                value={hkSettings?.enabled ?? false}
+                onValueChange={toggleHealthKit}
+                trackColor={{ false: "#333", true: "#4ade80" }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+        </>
+      )}
 
       <Text style={styles.sectionTitle}>Data & Privacy</Text>
       <View style={styles.section}>
@@ -113,6 +169,12 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 16, color: "#fff", fontWeight: "500" },
   rowSublabel: { fontSize: 13, color: "#888", marginTop: 2 },
   destructiveLabel: { color: "#ef4444" },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+  },
   chevron: { fontSize: 20, color: "#555" },
   versionText: {
     textAlign: "center",

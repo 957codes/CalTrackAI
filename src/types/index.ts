@@ -58,3 +58,10 @@ export interface UserGoals {
   targetCarbs: number;
   targetFat: number;
 }
+
+export interface HealthKitSettings {
+  enabled: boolean;
+  writeNutrition: boolean;
+  readWeight: boolean;
+  readActivity: boolean;
+}

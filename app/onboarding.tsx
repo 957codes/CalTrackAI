@@ -25,10 +25,15 @@ import {
   Gender,
   DietaryPreference,
 } from "../src/types";
+import {
+  isHealthKitAvailable,
+  initHealthKit,
+  saveHealthKitSettings,
+} from "../src/services/healthKitService";
 
 const { width } = Dimensions.get("window");
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 // --- Option configs ---
 
@@ -160,6 +165,23 @@ export default function OnboardingScreen() {
     handleNext();
   }
 
+  async function requestHealthKitPermission() {
+    if (!isHealthKitAvailable()) {
+      handleNext();
+      return;
+    }
+    const granted = await initHealthKit();
+    if (granted) {
+      await saveHealthKitSettings({
+        enabled: true,
+        writeNutrition: true,
+        readWeight: true,
+        readActivity: true,
+      });
+    }
+    handleNext();
+  }
+
   function renderStepContent() {
     switch (step) {
       case 0:
@@ -192,6 +214,8 @@ export default function OnboardingScreen() {
       case 5:
         return <NotificationStep />;
       case 6:
+        return <HealthKitStep />;
+      case 7:
         return <FirstMealStep />;
       default:
         return null;
@@ -214,6 +238,13 @@ export default function OnboardingScreen() {
       );
     }
     if (step === 6) {
+      return (
+        <TouchableOpacity style={styles.primaryBtn} onPress={requestHealthKitPermission}>
+          <Text style={styles.btnText}>Connect Apple Health</Text>
+        </TouchableOpacity>
+      );
+    }
+    if (step === 7) {
       return (
         <TouchableOpacity style={styles.primaryBtn} onPress={handleFinish}>
           <Text style={styles.btnText}>Take My First Photo</Text>
@@ -255,7 +286,7 @@ export default function OnboardingScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         {renderButton()}
-        {step > 0 && step < TOTAL_STEPS - 1 && step !== 4 && step !== 5 && (
+        {step > 0 && step < TOTAL_STEPS - 1 && step !== 4 && step !== 5 && step !== 6 && (
           <TouchableOpacity
             style={styles.skipBtn}
             onPress={async () => {
@@ -270,7 +301,7 @@ export default function OnboardingScreen() {
             <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
         )}
-        {(step === 4 || step === 5) && (
+        {(step === 4 || step === 5 || step === 6) && (
           <TouchableOpacity style={styles.skipBtn} onPress={handleNext}>
             <Text style={styles.skipText}>Not now</Text>
           </TouchableOpacity>
@@ -488,6 +519,18 @@ function NotificationStep() {
       <Text style={styles.stepTitle}>Meal reminders</Text>
       <Text style={styles.stepSubtitle}>
         Get gentle reminders at breakfast, lunch, and dinner so you never forget to log a meal. Plus a daily summary of your progress.
+      </Text>
+    </View>
+  );
+}
+
+function HealthKitStep() {
+  return (
+    <View style={styles.centerStep}>
+      <Text style={styles.heroEmoji}>{"\u2764\uFE0F"}</Text>
+      <Text style={styles.stepTitle}>Apple Health</Text>
+      <Text style={styles.stepSubtitle}>
+        Sync your meals to Apple Health so all your nutrition data lives in one place. We can also read your weight and activity to give better calorie targets.
       </Text>
     </View>
   );

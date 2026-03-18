@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DailyLog, MacroBreakdown, MealEntry } from "../types";
+import { writeMealToHealthKit } from "../services/healthKitService";
 
 const STORAGE_KEY_PREFIX = "caltrack_log_";
 
@@ -37,6 +38,10 @@ export async function addMealEntry(meal: MealEntry): Promise<DailyLog> {
   log.totalMacros = sumMacros(log.meals);
   const key = STORAGE_KEY_PREFIX + getDateKey(today);
   await AsyncStorage.setItem(key, JSON.stringify(log));
+
+  // Sync to Apple Health (non-blocking — failure doesn't affect meal save)
+  writeMealToHealthKit(meal.totalMacros, meal.timestamp).catch(() => {});
+
   return log;
 }
 
