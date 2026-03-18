@@ -87,6 +87,7 @@ describe("getHealthKitSettings / saveHealthKitSettings", () => {
     expect(settings).toEqual({
       enabled: false,
       writeNutrition: true,
+      writeWater: true,
       readWeight: true,
       readActivity: true,
     });
@@ -96,6 +97,7 @@ describe("getHealthKitSettings / saveHealthKitSettings", () => {
     const custom = {
       enabled: true,
       writeNutrition: true,
+      writeWater: true,
       readWeight: false,
       readActivity: true,
     };
@@ -120,6 +122,7 @@ describe("writeMealToHealthKit", () => {
     await saveHealthKitSettings({
       enabled: true,
       writeNutrition: false,
+      writeWater: true,
       readWeight: true,
       readActivity: true,
     });
@@ -131,6 +134,7 @@ describe("writeMealToHealthKit", () => {
     await saveHealthKitSettings({
       enabled: true,
       writeNutrition: true,
+      writeWater: true,
       readWeight: true,
       readActivity: true,
     });
@@ -153,6 +157,7 @@ describe("writeMealToHealthKit", () => {
     await saveHealthKitSettings({
       enabled: true,
       writeNutrition: true,
+      writeWater: true,
       readWeight: true,
       readActivity: true,
     });

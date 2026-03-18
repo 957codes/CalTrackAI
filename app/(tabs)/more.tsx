@@ -8,7 +8,15 @@ import {
   getHealthKitSettings,
   saveHealthKitSettings,
 } from "../../src/services/healthKitService";
-import { HealthKitSettings } from "../../src/types";
+import {
+  getWaterSettings,
+  saveWaterSettings,
+} from "../../src/utils/waterStorage";
+import {
+  scheduleHydrationReminders,
+  requestNotificationPermissions,
+} from "../../src/services/hydrationReminders";
+import { HealthKitSettings, WaterSettings } from "../../src/types";
 import { useTheme, ThemeColors } from "../../src/theme";
 
 function SettingsRow({
@@ -41,13 +49,41 @@ export default function MoreScreen() {
   const colors = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [hkSettings, setHkSettings] = useState<HealthKitSettings | null>(null);
+  const [waterSettings, setWaterSettingsState] = useState<WaterSettings | null>(null);
   const showHealthKit = isHealthKitAvailable();
 
   useEffect(() => {
     if (showHealthKit) {
       getHealthKitSettings().then(setHkSettings);
     }
+    getWaterSettings().then(setWaterSettingsState);
   }, []);
+
+  async function updateWaterGoal(delta: number) {
+    if (!waterSettings) return;
+    const newGoal = Math.max(8, waterSettings.dailyGoalOz + delta);
+    const updated = { ...waterSettings, dailyGoalOz: newGoal };
+    await saveWaterSettings(updated);
+    setWaterSettingsState(updated);
+  }
+
+  async function toggleReminders(enabled: boolean) {
+    if (!waterSettings) return;
+    if (enabled) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert(
+          "Notifications Denied",
+          "Please enable notifications for CalTrack AI in Settings."
+        );
+        return;
+      }
+    }
+    const updated = { ...waterSettings, remindersEnabled: enabled };
+    await saveWaterSettings(updated);
+    setWaterSettingsState(updated);
+    await scheduleHydrationReminders();
+  }
 
   async function toggleHealthKit(enabled: boolean) {
     if (enabled) {
@@ -61,7 +97,7 @@ export default function MoreScreen() {
       }
     }
     const updated: HealthKitSettings = {
-      ...(hkSettings ?? { enabled: false, writeNutrition: true, readWeight: true, readActivity: true }),
+      ...(hkSettings ?? { enabled: false, writeNutrition: true, writeWater: true, readWeight: true, readActivity: true }),
       enabled,
     };
     await saveHealthKitSettings(updated);
@@ -146,6 +182,53 @@ export default function MoreScreen() {
         />
       </View>
 
+      {waterSettings && (
+        <>
+          <Text style={styles.sectionTitle}>Hydration</Text>
+          <View style={styles.section}>
+            <View style={styles.toggleRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Daily Water Goal</Text>
+                <Text style={styles.rowSublabel}>
+                  {waterSettings.dailyGoalOz} oz ({Math.ceil(waterSettings.dailyGoalOz / 8)} glasses)
+                </Text>
+              </View>
+              <View style={styles.stepperRow}>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => updateWaterGoal(-8)}
+                >
+                  <Text style={styles.stepperText}>−</Text>
+                </TouchableOpacity>
+                <Text style={styles.stepperValue}>
+                  {waterSettings.dailyGoalOz}
+                </Text>
+                <TouchableOpacity
+                  style={styles.stepperBtn}
+                  onPress={() => updateWaterGoal(8)}
+                >
+                  <Text style={styles.stepperText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.toggleRow}>
+              <View>
+                <Text style={styles.rowLabel}>Hydration Reminders</Text>
+                <Text style={styles.rowSublabel}>
+                  Every {waterSettings.reminderIntervalHours}h, {waterSettings.reminderStartHour}:00–{waterSettings.reminderEndHour}:00
+                </Text>
+              </View>
+              <Switch
+                value={waterSettings.remindersEnabled}
+                onValueChange={toggleReminders}
+                trackColor={{ false: colors.inputBorder, true: colors.water }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+        </>
+      )}
+
       {showHealthKit && (
         <>
           <Text style={styles.sectionTitle}>Apple Health</Text>
@@ -218,6 +301,31 @@ function makeStyles(colors: ThemeColors) {
       padding: 16,
     },
     chevron: { fontSize: 20, color: colors.textDisabled },
+    stepperRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    stepperBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    stepperText: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    stepperValue: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+      minWidth: 32,
+      textAlign: "center",
+    },
     versionText: {
       textAlign: "center",
       color: colors.textDisabled,

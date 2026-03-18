@@ -4,7 +4,7 @@ import AppleHealthKit, {
   HealthValueOptions,
 } from "react-native-health";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { MacroBreakdown, HealthKitSettings } from "../types";
+import { MacroBreakdown, HealthKitSettings, WaterSettings } from "../types";
 
 const HEALTHKIT_SETTINGS_KEY = "caltrack_healthkit_settings";
 
@@ -20,6 +20,7 @@ const permissions: HealthKitPermissions = {
       AppleHealthKit.Constants.Permissions.Protein,
       AppleHealthKit.Constants.Permissions.Carbohydrates,
       AppleHealthKit.Constants.Permissions.FatTotal,
+      AppleHealthKit.Constants.Permissions.Water,
     ],
   },
 };
@@ -46,6 +47,7 @@ export async function getHealthKitSettings(): Promise<HealthKitSettings> {
   return {
     enabled: false,
     writeNutrition: true,
+    writeWater: true,
     readWeight: true,
     readActivity: true,
   };
@@ -101,6 +103,28 @@ function wrapCallback(
       resolve();
     });
   });
+}
+
+export async function writeWaterToHealthKit(
+  amountOz: number,
+  timestamp: number
+): Promise<void> {
+  const settings = await getHealthKitSettings();
+  if (!settings.enabled || !settings.writeWater || !isHealthKitAvailable()) {
+    return;
+  }
+
+  // Convert oz to mL for HealthKit (1 oz = 29.5735 mL)
+  const amountMl = amountOz * 29.5735;
+  const date = new Date(timestamp).toISOString();
+
+  // HealthKit water samples are written via the generic saveFood with Water metadata
+  await wrapCallback((cb) =>
+    AppleHealthKit.saveFood(
+      { value: amountMl, startDate: date, endDate: date, metadata: { HKFoodType: "Water" } } as any,
+      cb
+    )
+  );
 }
 
 export function getLatestWeight(): Promise<number | null> {

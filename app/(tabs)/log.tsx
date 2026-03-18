@@ -10,13 +10,22 @@ import {
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { getDailyLog, deleteMealEntry } from "../../src/utils/storage";
-import { DailyLog, MealEntry } from "../../src/types";
+import {
+  getDailyWaterLog,
+  addWaterEntry,
+  deleteWaterEntry,
+  getWaterSettings,
+} from "../../src/utils/waterStorage";
+import { DailyLog, DailyWaterLog, MealEntry } from "../../src/types";
 import { useTheme, ThemeColors } from "../../src/theme";
+import { trackUserAction } from "../../src/services/sentry";
 
 export default function LogScreen() {
   const colors = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [log, setLog] = useState<DailyLog | null>(null);
+  const [waterLog, setWaterLog] = useState<DailyWaterLog | null>(null);
+  const [waterGoalOz, setWaterGoalOz] = useState(64);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,6 +36,29 @@ export default function LogScreen() {
   async function loadLog() {
     const dailyLog = await getDailyLog();
     setLog(dailyLog);
+    setWaterLog(await getDailyWaterLog());
+    const ws = await getWaterSettings();
+    setWaterGoalOz(ws.dailyGoalOz);
+  }
+
+  async function handleQuickWater(oz: number) {
+    trackUserAction("log_water", { amountOz: String(oz) });
+    const updated = await addWaterEntry(oz);
+    setWaterLog(updated);
+  }
+
+  async function handleDeleteWater(entryId: string) {
+    Alert.alert("Delete Entry", "Remove this water entry?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          const updated = await deleteWaterEntry(entryId);
+          setWaterLog(updated);
+        },
+      },
+    ]);
   }
 
   async function handleDelete(mealId: string) {
@@ -43,7 +75,11 @@ export default function LogScreen() {
     ]);
   }
 
-  if (!log || log.meals.length === 0) {
+  const hasContent =
+    (log && log.meals.length > 0) ||
+    (waterLog && waterLog.entries.length > 0);
+
+  if (!hasContent) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>🍽</Text>
@@ -58,19 +94,66 @@ export default function LogScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.summaryBar}>
-        <SummaryItem label="Calories" value={Math.round(log.totalMacros.calories)} color={colors.calories} styles={styles} />
-        <SummaryItem label="Protein" value={Math.round(log.totalMacros.protein)} color={colors.protein} styles={styles} />
-        <SummaryItem label="Carbs" value={Math.round(log.totalMacros.carbs)} color={colors.carbs} styles={styles} />
-        <SummaryItem label="Fat" value={Math.round(log.totalMacros.fat)} color={colors.fat} styles={styles} />
+        <SummaryItem label="Calories" value={Math.round(log?.totalMacros.calories ?? 0)} color={colors.calories} styles={styles} />
+        <SummaryItem label="Protein" value={Math.round(log?.totalMacros.protein ?? 0)} color={colors.protein} styles={styles} />
+        <SummaryItem label="Carbs" value={Math.round(log?.totalMacros.carbs ?? 0)} color={colors.carbs} styles={styles} />
+        <SummaryItem label="Fat" value={Math.round(log?.totalMacros.fat ?? 0)} color={colors.fat} styles={styles} />
       </View>
 
-      <Text style={styles.sectionTitle}>
-        {log.meals.length} meal{log.meals.length !== 1 ? "s" : ""} today
-      </Text>
+      {waterLog && (
+        <View style={styles.waterSection}>
+          <View style={styles.waterHeader}>
+            <Text style={styles.sectionTitle}>
+              💧 Water — {waterLog.totalOz} / {waterGoalOz} oz
+            </Text>
+          </View>
+          <View style={styles.waterQuickRow}>
+            {[8, 12, 16].map((oz) => (
+              <TouchableOpacity
+                key={oz}
+                style={[styles.waterQuickBtn, { borderColor: colors.water }]}
+                onPress={() => handleQuickWater(oz)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.waterQuickText, { color: colors.water }]}>
+                  +{oz}oz
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {waterLog.entries.map((entry) => (
+            <View key={entry.id} style={styles.waterEntry}>
+              <Text style={styles.waterEntryTime}>
+                {new Date(entry.timestamp).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+              <Text style={[styles.waterEntryAmount, { color: colors.water }]}>
+                {entry.amountOz} oz
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleDeleteWater(entry.id)}
+                style={styles.deleteBtn}
+              >
+                <Text style={styles.deleteBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
 
-      {log.meals.map((meal) => (
-        <MealCard key={meal.id} meal={meal} onDelete={() => handleDelete(meal.id)} styles={styles} colors={colors} />
-      ))}
+      {log && log.meals.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>
+            {log.meals.length} meal{log.meals.length !== 1 ? "s" : ""} today
+          </Text>
+
+          {log.meals.map((meal) => (
+            <MealCard key={meal.id} meal={meal} onDelete={() => handleDelete(meal.id)} styles={styles} colors={colors} />
+          ))}
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -145,6 +228,46 @@ function makeStyles(colors: ThemeColors) {
     summaryValue: { fontSize: 20, fontWeight: "800" },
     summaryLabel: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
     sectionTitle: { fontSize: 16, color: colors.textMuted, marginBottom: 16, fontWeight: "600" },
+    waterSection: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 24,
+    },
+    waterHeader: { marginBottom: 8 },
+    waterQuickRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginBottom: 12,
+    },
+    waterQuickBtn: {
+      flex: 1,
+      borderWidth: 1.5,
+      borderRadius: 10,
+      paddingVertical: 8,
+      alignItems: "center",
+    },
+    waterQuickText: {
+      fontSize: 14,
+      fontWeight: "700",
+    },
+    waterEntry: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    waterEntryTime: {
+      color: colors.textMuted,
+      fontSize: 13,
+      flex: 1,
+    },
+    waterEntryAmount: {
+      fontSize: 15,
+      fontWeight: "600",
+      marginRight: 12,
+    },
     mealCard: {
       backgroundColor: colors.card,
       borderRadius: 16,

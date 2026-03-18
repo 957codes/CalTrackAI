@@ -177,6 +177,7 @@ export default function OnboardingScreen() {
       await saveHealthKitSettings({
         enabled: true,
         writeNutrition: true,
+        writeWater: true,
         readWeight: true,
         readActivity: true,
       });

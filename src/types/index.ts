@@ -62,8 +62,29 @@ export interface UserGoals {
 export interface HealthKitSettings {
   enabled: boolean;
   writeNutrition: boolean;
+  writeWater: boolean;
   readWeight: boolean;
   readActivity: boolean;
+}
+
+export interface WaterEntry {
+  id: string;
+  timestamp: number;
+  amountOz: number;
+}
+
+export interface DailyWaterLog {
+  date: string; // YYYY-MM-DD
+  entries: WaterEntry[];
+  totalOz: number;
+}
+
+export interface WaterSettings {
+  dailyGoalOz: number;
+  remindersEnabled: boolean;
+  reminderIntervalHours: number;
+  reminderStartHour: number; // 24h format, e.g. 8 = 8am
+  reminderEndHour: number; // 24h format, e.g. 22 = 10pm
 }
 
 // Feedback system types

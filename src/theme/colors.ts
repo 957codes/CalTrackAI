@@ -24,6 +24,7 @@ export interface ThemeColors {
   protein: string;
   carbs: string;
   fat: string;
+  water: string;
 
   // Semantic
   destructive: string;
@@ -59,6 +60,7 @@ export const darkColors: ThemeColors = {
   protein: "#3b82f6",
   carbs: "#eab308",
   fat: "#ef4444",
+  water: "#06b6d4",
 
   destructive: "#ef4444",
   warning: "#eab308",
@@ -92,6 +94,7 @@ export const lightColors: ThemeColors = {
   protein: "#2563eb",
   carbs: "#ca8a04",
   fat: "#dc2626",
+  water: "#0891b2",
 
   destructive: "#dc2626",
   warning: "#ca8a04",

@@ -1,10 +1,17 @@
 import { useState, useCallback, useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { getDailyLog, getWeekLogs } from "../../src/utils/storage";
 import { getUserGoals } from "../../src/utils/onboarding";
-import { DailyLog } from "../../src/types";
+import {
+  getDailyWaterLog,
+  addWaterEntry,
+  getWaterSettings,
+  getWeekWaterLogs,
+} from "../../src/utils/waterStorage";
+import { DailyLog, DailyWaterLog, WaterSettings } from "../../src/types";
 import { useTheme, ThemeColors } from "../../src/theme";
+import { trackUserAction } from "../../src/services/sentry";
 
 const DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 250, fat: 65 };
 
@@ -14,24 +21,39 @@ export default function DashboardScreen() {
   const [today, setToday] = useState<DailyLog | null>(null);
   const [weekLogs, setWeekLogs] = useState<DailyLog[]>([]);
   const [dailyGoals, setDailyGoals] = useState(DEFAULT_GOALS);
+  const [waterLog, setWaterLog] = useState<DailyWaterLog | null>(null);
+  const [waterGoalOz, setWaterGoalOz] = useState(64);
+  const [weekWaterLogs, setWeekWaterLogs] = useState<DailyWaterLog[]>([]);
+
+  const loadData = useCallback(async () => {
+    setToday(await getDailyLog());
+    setWeekLogs(await getWeekLogs());
+    setWaterLog(await getDailyWaterLog());
+    setWeekWaterLogs(await getWeekWaterLogs());
+    const goals = await getUserGoals();
+    if (goals) {
+      setDailyGoals({
+        calories: goals.targetCalories,
+        protein: goals.targetProtein,
+        carbs: goals.targetCarbs,
+        fat: goals.targetFat,
+      });
+    }
+    const ws = await getWaterSettings();
+    setWaterGoalOz(ws.dailyGoalOz);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        setToday(await getDailyLog());
-        setWeekLogs(await getWeekLogs());
-        const goals = await getUserGoals();
-        if (goals) {
-          setDailyGoals({
-            calories: goals.targetCalories,
-            protein: goals.targetProtein,
-            carbs: goals.targetCarbs,
-            fat: goals.targetFat,
-          });
-        }
-      })();
-    }, [])
+      loadData();
+    }, [loadData])
   );
+
+  async function handleQuickWater(oz: number) {
+    trackUserAction("log_water", { amountOz: String(oz) });
+    const updated = await addWaterEntry(oz);
+    setWaterLog(updated);
+  }
 
   if (!today) return null;
 
@@ -82,6 +104,65 @@ export default function DashboardScreen() {
           styles={styles}
         />
       </View>
+
+      {waterLog && (
+        <View style={styles.waterSection}>
+          <Text style={styles.sectionTitle}>Hydration</Text>
+          <View style={styles.waterCard}>
+            <View style={styles.waterProgressRow}>
+              <View style={styles.waterDropContainer}>
+                <View style={styles.waterDropOuter}>
+                  <View
+                    style={[
+                      styles.waterDropFill,
+                      {
+                        height: `${Math.min((waterLog.totalOz / waterGoalOz) * 100, 100)}%`,
+                        backgroundColor: colors.water,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.waterDropIcon}>💧</Text>
+              </View>
+              <View style={styles.waterInfo}>
+                <Text style={[styles.waterAmount, { color: colors.water }]}>
+                  {waterLog.totalOz}
+                  <Text style={styles.waterUnit}> / {waterGoalOz} oz</Text>
+                </Text>
+                <Text style={styles.waterGlasses}>
+                  {Math.floor(waterLog.totalOz / 8)} of{" "}
+                  {Math.ceil(waterGoalOz / 8)} glasses
+                </Text>
+                <ProgressBar
+                  label=""
+                  current={waterLog.totalOz}
+                  goal={waterGoalOz}
+                  unit="oz"
+                  color={colors.water}
+                  styles={styles}
+                />
+              </View>
+            </View>
+            <View style={styles.quickLogRow}>
+              {[8, 12, 16].map((oz) => (
+                <TouchableOpacity
+                  key={oz}
+                  style={[
+                    styles.quickLogBtn,
+                    { borderColor: colors.water },
+                  ]}
+                  onPress={() => handleQuickWater(oz)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.quickLogText, { color: colors.water }]}>
+                    +{oz}oz
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      )}
 
       <View style={styles.weekSection}>
         <Text style={styles.sectionTitle}>This Week</Text>
@@ -137,6 +218,15 @@ export default function DashboardScreen() {
             label="Days Logged"
             value={weekLogs.filter((l) => l.meals.length > 0).length}
             unit="/ 7"
+            styles={styles}
+          />
+          <StatCard
+            label="Avg Water"
+            value={Math.round(
+              weekWaterLogs.reduce((s, l) => s + l.totalOz, 0) /
+                Math.max(weekWaterLogs.filter((l) => l.entries.length > 0).length, 1)
+            )}
+            unit="oz"
             styles={styles}
           />
         </View>
@@ -212,6 +302,71 @@ function makeStyles(colors: ThemeColors) {
       overflow: "hidden",
     },
     progressFill: { height: "100%", borderRadius: 4 },
+    waterSection: { marginBottom: 32 },
+    waterCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+    },
+    waterProgressRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    waterDropContainer: {
+      width: 56,
+      height: 56,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 16,
+    },
+    waterDropOuter: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.border,
+      overflow: "hidden",
+      justifyContent: "flex-end",
+    },
+    waterDropFill: {
+      width: "100%",
+      borderRadius: 0,
+    },
+    waterDropIcon: {
+      position: "absolute",
+      fontSize: 28,
+    },
+    waterInfo: { flex: 1 },
+    waterAmount: {
+      fontSize: 24,
+      fontWeight: "800",
+    },
+    waterUnit: {
+      fontSize: 14,
+      fontWeight: "400",
+      color: colors.textMuted,
+    },
+    waterGlasses: {
+      fontSize: 13,
+      color: colors.textMuted,
+      marginBottom: 8,
+    },
+    quickLogRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+    quickLogBtn: {
+      flex: 1,
+      borderWidth: 1.5,
+      borderRadius: 12,
+      paddingVertical: 10,
+      alignItems: "center",
+    },
+    quickLogText: {
+      fontSize: 15,
+      fontWeight: "700",
+    },
     weekSection: { marginBottom: 32 },
     weekChart: { flexDirection: "row", justifyContent: "space-between", height: 160 },
     weekDay: { alignItems: "center", flex: 1 },
