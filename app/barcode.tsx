@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,8 +15,12 @@ import { lookupBarcode, BarcodeResult } from "../src/services/barcodeService";
 import { addMealEntry } from "../src/utils/storage";
 import { trackUserAction } from "../src/services/sentry";
 import { FoodItem } from "../src/types";
+import { useTheme, ThemeColors } from "../src/theme";
 
 export default function BarcodeScreen() {
+  const colors = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const [permission, requestPermission] = useCameraPermissions();
   const [scanning, setScanning] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -107,7 +111,7 @@ export default function BarcodeScreen() {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4ade80" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -160,7 +164,7 @@ export default function BarcodeScreen() {
 
       {loading && (
         <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color="#4ade80" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Looking up product...</Text>
         </View>
       )}
@@ -173,10 +177,10 @@ export default function BarcodeScreen() {
           </Text>
 
           <View style={styles.macroRow}>
-            <MacroCard label="Calories" value={getScaledFood()!.macros.calories} unit="kcal" color="#f97316" />
-            <MacroCard label="Protein" value={getScaledFood()!.macros.protein} unit="g" color="#3b82f6" />
-            <MacroCard label="Carbs" value={getScaledFood()!.macros.carbs} unit="g" color="#eab308" />
-            <MacroCard label="Fat" value={getScaledFood()!.macros.fat} unit="g" color="#ef4444" />
+            <MacroCard label="Calories" value={getScaledFood()!.macros.calories} unit="kcal" color={colors.calories} styles={styles} />
+            <MacroCard label="Protein" value={getScaledFood()!.macros.protein} unit="g" color={colors.protein} styles={styles} />
+            <MacroCard label="Carbs" value={getScaledFood()!.macros.carbs} unit="g" color={colors.carbs} styles={styles} />
+            <MacroCard label="Fat" value={getScaledFood()!.macros.fat} unit="g" color={colors.fat} styles={styles} />
           </View>
 
           <View style={styles.servingsRow}>
@@ -234,11 +238,13 @@ function MacroCard({
   value,
   unit,
   color,
+  styles,
 }: {
   label: string;
   value: number;
   unit: string;
   color: string;
+  styles: ReturnType<typeof makeStyles>;
 }) {
   return (
     <View style={[styles.macroCard, { borderTopColor: color }]}>
@@ -251,154 +257,156 @@ function MacroCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f0f23" },
-  cameraContainer: { flex: 1 },
-  camera: { flex: 1 },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scanWindow: {
-    width: 280,
-    height: 160,
-    borderColor: "transparent",
-    position: "relative",
-  },
-  corner: {
-    position: "absolute",
-    width: 30,
-    height: 30,
-    borderColor: "#4ade80",
-  },
-  cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3 },
-  cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3 },
-  cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3 },
-  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3 },
-  scanHint: {
-    color: "#fff",
-    fontSize: 15,
-    marginTop: 24,
-    textAlign: "center",
-    textShadowColor: "rgba(0,0,0,0.8)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  loadingBox: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: { color: "#aaa", marginTop: 12, fontSize: 16 },
-  resultContainer: { flex: 1 },
-  resultContent: { padding: 20, paddingBottom: 100 },
-  resultTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 4,
-  },
-  resultPortion: { color: "#888", fontSize: 14, marginBottom: 20 },
-  macroRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  macroCard: {
-    flex: 1,
-    backgroundColor: "#1a1a2e",
-    padding: 12,
-    borderRadius: 12,
-    marginHorizontal: 3,
-    alignItems: "center",
-    borderTopWidth: 3,
-  },
-  macroValue: { fontSize: 18, fontWeight: "700", color: "#fff" },
-  macroUnit: { fontSize: 12, color: "#aaa" },
-  macroLabel: { fontSize: 11, color: "#888", marginTop: 4 },
-  servingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-    gap: 12,
-  },
-  servingsLabel: { color: "#aaa", fontSize: 16 },
-  servingBtn: {
-    backgroundColor: "#1a1a2e",
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  servingBtnText: { color: "#4ade80", fontSize: 20, fontWeight: "700" },
-  servingsInput: {
-    backgroundColor: "#1a1a2e",
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
-    width: 60,
-    textAlign: "center",
-    padding: 8,
-    borderRadius: 10,
-    borderColor: "#333",
-    borderWidth: 1,
-  },
-  primaryBtn: {
-    backgroundColor: "#4ade80",
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-    marginBottom: 16,
-    alignItems: "center",
-  },
-  btnText: { color: "#000", fontSize: 18, fontWeight: "700" },
-  secondaryBtn: {
-    borderColor: "#4ade80",
-    borderWidth: 2,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-    marginBottom: 16,
-    alignItems: "center",
-  },
-  btnTextSecondary: { color: "#4ade80", fontSize: 16, fontWeight: "600" },
-  savedText: {
-    color: "#4ade80",
-    fontSize: 16,
-    textAlign: "center",
-    marginVertical: 16,
-    fontWeight: "600",
-  },
-  backBtn: {
-    position: "absolute",
-    top: 60,
-    left: 20,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-  },
-  backBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  permissionBox: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 30,
-  },
-  permissionTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  permissionText: {
-    color: "#aaa",
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 30,
-    lineHeight: 24,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    cameraContainer: { flex: 1 },
+    camera: { flex: 1 },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    scanWindow: {
+      width: 280,
+      height: 160,
+      borderColor: "transparent",
+      position: "relative",
+    },
+    corner: {
+      position: "absolute",
+      width: 30,
+      height: 30,
+      borderColor: colors.accent,
+    },
+    cornerTL: { top: 0, left: 0, borderTopWidth: 3, borderLeftWidth: 3 },
+    cornerTR: { top: 0, right: 0, borderTopWidth: 3, borderRightWidth: 3 },
+    cornerBL: { bottom: 0, left: 0, borderBottomWidth: 3, borderLeftWidth: 3 },
+    cornerBR: { bottom: 0, right: 0, borderBottomWidth: 3, borderRightWidth: 3 },
+    scanHint: {
+      color: "#fff",
+      fontSize: 15,
+      marginTop: 24,
+      textAlign: "center",
+      textShadowColor: "rgba(0,0,0,0.8)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 4,
+    },
+    loadingBox: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingText: { color: colors.textTertiary, marginTop: 12, fontSize: 16 },
+    resultContainer: { flex: 1 },
+    resultContent: { padding: 20, paddingBottom: 100 },
+    resultTitle: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: colors.text,
+      marginBottom: 4,
+    },
+    resultPortion: { color: colors.textMuted, fontSize: 14, marginBottom: 20 },
+    macroRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 24,
+    },
+    macroCard: {
+      flex: 1,
+      backgroundColor: colors.card,
+      padding: 12,
+      borderRadius: 12,
+      marginHorizontal: 3,
+      alignItems: "center",
+      borderTopWidth: 3,
+    },
+    macroValue: { fontSize: 18, fontWeight: "700", color: colors.text },
+    macroUnit: { fontSize: 12, color: colors.textTertiary },
+    macroLabel: { fontSize: 11, color: colors.textMuted, marginTop: 4 },
+    servingsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 24,
+      gap: 12,
+    },
+    servingsLabel: { color: colors.textTertiary, fontSize: 16 },
+    servingBtn: {
+      backgroundColor: colors.card,
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    servingBtnText: { color: colors.accent, fontSize: 20, fontWeight: "700" },
+    servingsInput: {
+      backgroundColor: colors.card,
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+      width: 60,
+      textAlign: "center",
+      padding: 8,
+      borderRadius: 10,
+      borderColor: colors.inputBorder,
+      borderWidth: 1,
+    },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      paddingVertical: 16,
+      paddingHorizontal: 40,
+      borderRadius: 16,
+      marginBottom: 16,
+      alignItems: "center",
+    },
+    btnText: { color: colors.accentOnAccent, fontSize: 18, fontWeight: "700" },
+    secondaryBtn: {
+      borderColor: colors.accent,
+      borderWidth: 2,
+      paddingVertical: 14,
+      paddingHorizontal: 40,
+      borderRadius: 16,
+      marginBottom: 16,
+      alignItems: "center",
+    },
+    btnTextSecondary: { color: colors.accent, fontSize: 16, fontWeight: "600" },
+    savedText: {
+      color: colors.accent,
+      fontSize: 16,
+      textAlign: "center",
+      marginVertical: 16,
+      fontWeight: "600",
+    },
+    backBtn: {
+      position: "absolute",
+      top: 60,
+      left: 20,
+      backgroundColor: colors.backButtonBackground,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+    },
+    backBtnText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+    permissionBox: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 30,
+    },
+    permissionTitle: {
+      color: colors.text,
+      fontSize: 22,
+      fontWeight: "700",
+      marginBottom: 12,
+    },
+    permissionText: {
+      color: colors.textTertiary,
+      fontSize: 16,
+      textAlign: "center",
+      marginBottom: 30,
+      lineHeight: 24,
+    },
+  });
+}

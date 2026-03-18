@@ -1,15 +1,20 @@
+import { useMemo } from "react";
 import { ScrollView, Text, StyleSheet } from "react-native";
 import { Stack } from "expo-router";
+import { useTheme, ThemeColors } from "../src/theme";
 
 export default function TermsOfServiceScreen() {
+  const colors = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <>
       <Stack.Screen
         options={{
           headerShown: true,
           title: "Terms of Service",
-          headerStyle: { backgroundColor: "#1a1a2e" },
-          headerTintColor: "#fff",
+          headerStyle: { backgroundColor: colors.card },
+          headerTintColor: colors.text,
           headerTitleStyle: { fontWeight: "700" },
         }}
       />
@@ -94,11 +99,13 @@ export default function TermsOfServiceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f0f23" },
-  content: { padding: 20, paddingBottom: 60 },
-  updated: { fontSize: 13, color: "#888", marginBottom: 16 },
-  heading: { fontSize: 24, fontWeight: "800", color: "#fff", marginBottom: 16 },
-  subheading: { fontSize: 18, fontWeight: "700", color: "#fff", marginTop: 24, marginBottom: 8 },
-  body: { fontSize: 15, color: "#ccc", lineHeight: 22, marginBottom: 8 },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, paddingBottom: 60 },
+    updated: { fontSize: 13, color: colors.textMuted, marginBottom: 16 },
+    heading: { fontSize: 24, fontWeight: "800", color: colors.text, marginBottom: 16 },
+    subheading: { fontSize: 18, fontWeight: "700", color: colors.text, marginTop: 24, marginBottom: 8 },
+    body: { fontSize: 15, color: colors.textSecondary, lineHeight: 22, marginBottom: 8 },
+  });
+}

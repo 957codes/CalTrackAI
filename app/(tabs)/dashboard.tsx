@@ -1,13 +1,16 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { getDailyLog, getWeekLogs } from "../../src/utils/storage";
 import { getUserGoals } from "../../src/utils/onboarding";
 import { DailyLog } from "../../src/types";
+import { useTheme, ThemeColors } from "../../src/theme";
 
 const DEFAULT_GOALS = { calories: 2000, protein: 150, carbs: 250, fat: 65 };
 
 export default function DashboardScreen() {
+  const colors = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [today, setToday] = useState<DailyLog | null>(null);
   const [weekLogs, setWeekLogs] = useState<DailyLog[]>([]);
   const [dailyGoals, setDailyGoals] = useState(DEFAULT_GOALS);
@@ -51,28 +54,32 @@ export default function DashboardScreen() {
           current={today.totalMacros.calories}
           goal={dailyGoals.calories}
           unit="kcal"
-          color="#f97316"
+          color={colors.calories}
+          styles={styles}
         />
         <ProgressBar
           label="Protein"
           current={today.totalMacros.protein}
           goal={dailyGoals.protein}
           unit="g"
-          color="#3b82f6"
+          color={colors.protein}
+          styles={styles}
         />
         <ProgressBar
           label="Carbs"
           current={today.totalMacros.carbs}
           goal={dailyGoals.carbs}
           unit="g"
-          color="#eab308"
+          color={colors.carbs}
+          styles={styles}
         />
         <ProgressBar
           label="Fat"
           current={today.totalMacros.fat}
           goal={dailyGoals.fat}
           unit="g"
-          color="#ef4444"
+          color={colors.fat}
+          styles={styles}
         />
       </View>
 
@@ -93,7 +100,7 @@ export default function DashboardScreen() {
                       styles.bar,
                       {
                         height: `${Math.max(pct, 2)}%`,
-                        backgroundColor: pct >= 80 ? "#4ade80" : "#3b82f6",
+                        backgroundColor: pct >= 80 ? colors.accent : colors.protein,
                       },
                     ]}
                   />
@@ -118,16 +125,19 @@ export default function DashboardScreen() {
                 Math.max(weekLogs.filter((l) => l.meals.length > 0).length, 1)
             )}
             unit="kcal"
+            styles={styles}
           />
           <StatCard
             label="Total Meals"
             value={weekLogs.reduce((s, l) => s + l.meals.length, 0)}
             unit="meals"
+            styles={styles}
           />
           <StatCard
             label="Days Logged"
             value={weekLogs.filter((l) => l.meals.length > 0).length}
             unit="/ 7"
+            styles={styles}
           />
         </View>
       </View>
@@ -141,12 +151,14 @@ function ProgressBar({
   goal,
   unit,
   color,
+  styles,
 }: {
   label: string;
   current: number;
   goal: number;
   unit: string;
   color: string;
+  styles: ReturnType<typeof makeStyles>;
 }) {
   const pct = Math.min((current / goal) * 100, 100);
   return (
@@ -166,7 +178,7 @@ function ProgressBar({
   );
 }
 
-function StatCard({ label, value, unit }: { label: string; value: number; unit: string }) {
+function StatCard({ label, value, unit, styles }: { label: string; value: number; unit: string; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.statCard}>
       <Text style={styles.statValue}>
@@ -178,53 +190,55 @@ function StatCard({ label, value, unit }: { label: string; value: number; unit: 
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f0f23" },
-  content: { padding: 20, paddingBottom: 40 },
-  dateText: { fontSize: 16, color: "#888", marginBottom: 24 },
-  sectionTitle: { fontSize: 20, fontWeight: "700", color: "#fff", marginBottom: 16 },
-  goalSection: { marginBottom: 32 },
-  progressRow: { marginBottom: 16 },
-  progressHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  progressLabel: { color: "#fff", fontWeight: "600" },
-  progressValues: { color: "#888", fontSize: 13 },
-  progressTrack: {
-    height: 8,
-    backgroundColor: "#1a1a2e",
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  progressFill: { height: "100%", borderRadius: 4 },
-  weekSection: { marginBottom: 32 },
-  weekChart: { flexDirection: "row", justifyContent: "space-between", height: 160 },
-  weekDay: { alignItems: "center", flex: 1 },
-  barContainer: {
-    flex: 1,
-    width: 24,
-    backgroundColor: "#1a1a2e",
-    borderRadius: 6,
-    justifyContent: "flex-end",
-    overflow: "hidden",
-    marginBottom: 6,
-  },
-  bar: { width: "100%", borderRadius: 6 },
-  weekDayLabel: { color: "#888", fontSize: 12, marginTop: 4 },
-  weekDayCals: { color: "#555", fontSize: 10, marginTop: 2 },
-  statsSection: { marginBottom: 20 },
-  statsRow: { flexDirection: "row", justifyContent: "space-between" },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#1a1a2e",
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
-    alignItems: "center",
-  },
-  statValue: { fontSize: 22, fontWeight: "800", color: "#fff" },
-  statUnit: { fontSize: 13, color: "#888" },
-  statLabel: { fontSize: 12, color: "#888", marginTop: 6 },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, paddingBottom: 40 },
+    dateText: { fontSize: 16, color: colors.textMuted, marginBottom: 24 },
+    sectionTitle: { fontSize: 20, fontWeight: "700", color: colors.text, marginBottom: 16 },
+    goalSection: { marginBottom: 32 },
+    progressRow: { marginBottom: 16 },
+    progressHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 6,
+    },
+    progressLabel: { color: colors.text, fontWeight: "600" },
+    progressValues: { color: colors.textMuted, fontSize: 13 },
+    progressTrack: {
+      height: 8,
+      backgroundColor: colors.card,
+      borderRadius: 4,
+      overflow: "hidden",
+    },
+    progressFill: { height: "100%", borderRadius: 4 },
+    weekSection: { marginBottom: 32 },
+    weekChart: { flexDirection: "row", justifyContent: "space-between", height: 160 },
+    weekDay: { alignItems: "center", flex: 1 },
+    barContainer: {
+      flex: 1,
+      width: 24,
+      backgroundColor: colors.card,
+      borderRadius: 6,
+      justifyContent: "flex-end",
+      overflow: "hidden",
+      marginBottom: 6,
+    },
+    bar: { width: "100%", borderRadius: 6 },
+    weekDayLabel: { color: colors.textMuted, fontSize: 12, marginTop: 4 },
+    weekDayCals: { color: colors.textDisabled, fontSize: 10, marginTop: 2 },
+    statsSection: { marginBottom: 20 },
+    statsRow: { flexDirection: "row", justifyContent: "space-between" },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginHorizontal: 4,
+      alignItems: "center",
+    },
+    statValue: { fontSize: 22, fontWeight: "800", color: colors.text },
+    statUnit: { fontSize: 13, color: colors.textMuted },
+    statLabel: { fontSize: 12, color: colors.textMuted, marginTop: 6 },
+  });
+}

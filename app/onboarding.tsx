@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   Alert,
   ScrollView,
   TextInput,
-  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
@@ -30,6 +29,7 @@ import {
   initHealthKit,
   saveHealthKitSettings,
 } from "../src/services/healthKitService";
+import { useTheme, ThemeColors } from "../src/theme";
 
 const { width } = Dimensions.get("window");
 
@@ -74,6 +74,8 @@ const DIETARY_OPTIONS: {
 ];
 
 export default function OnboardingScreen() {
+  const colors = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [step, setStep] = useState(0);
 
   // Step 1: Goal
@@ -185,10 +187,10 @@ export default function OnboardingScreen() {
   function renderStepContent() {
     switch (step) {
       case 0:
-        return <WelcomeStep />;
+        return <WelcomeStep styles={styles} />;
       case 1:
         return (
-          <GoalStep weightGoal={weightGoal} setWeightGoal={setWeightGoal} />
+          <GoalStep weightGoal={weightGoal} setWeightGoal={setWeightGoal} styles={styles} />
         );
       case 2:
         return (
@@ -203,20 +205,22 @@ export default function OnboardingScreen() {
             setAge={setAge}
             activityLevel={activityLevel}
             setActivityLevel={setActivityLevel}
+            styles={styles}
+            colors={colors}
           />
         );
       case 3:
         return (
-          <DietaryStep dietaryPref={dietaryPref} setDietaryPref={setDietaryPref} />
+          <DietaryStep dietaryPref={dietaryPref} setDietaryPref={setDietaryPref} styles={styles} />
         );
       case 4:
-        return <CameraPreviewStep />;
+        return <CameraPreviewStep styles={styles} />;
       case 5:
-        return <NotificationStep />;
+        return <NotificationStep styles={styles} />;
       case 6:
-        return <HealthKitStep />;
+        return <HealthKitStep styles={styles} />;
       case 7:
-        return <FirstMealStep />;
+        return <FirstMealStep styles={styles} />;
       default:
         return null;
     }
@@ -313,7 +317,9 @@ export default function OnboardingScreen() {
 
 // --- Step Components ---
 
-function WelcomeStep() {
+type Styles = ReturnType<typeof makeStyles>;
+
+function WelcomeStep({ styles }: { styles: Styles }) {
   return (
     <View style={styles.centerStep}>
       <Text style={styles.heroEmoji}>{"\u{1F4F8}"}</Text>
@@ -328,9 +334,11 @@ function WelcomeStep() {
 function GoalStep({
   weightGoal,
   setWeightGoal,
+  styles,
 }: {
   weightGoal: WeightGoal | null;
   setWeightGoal: (v: WeightGoal) => void;
+  styles: Styles;
 }) {
   return (
     <View style={styles.centerStep}>
@@ -366,6 +374,8 @@ function ProfileStep({
   setAge,
   activityLevel,
   setActivityLevel,
+  styles,
+  colors,
 }: {
   gender: Gender | null;
   setGender: (v: Gender) => void;
@@ -377,6 +387,8 @@ function ProfileStep({
   setAge: (v: string) => void;
   activityLevel: ActivityLevel | null;
   setActivityLevel: (v: ActivityLevel) => void;
+  styles: Styles;
+  colors: ThemeColors;
 }) {
   return (
     <ScrollView
@@ -415,7 +427,7 @@ function ProfileStep({
         onChangeText={setHeightCm}
         keyboardType="numeric"
         placeholder="170"
-        placeholderTextColor="#555"
+        placeholderTextColor={colors.textDisabled}
         maxLength={3}
       />
 
@@ -426,7 +438,7 @@ function ProfileStep({
         onChangeText={setWeightKg}
         keyboardType="numeric"
         placeholder="70"
-        placeholderTextColor="#555"
+        placeholderTextColor={colors.textDisabled}
         maxLength={3}
       />
 
@@ -437,7 +449,7 @@ function ProfileStep({
         onChangeText={setAge}
         keyboardType="numeric"
         placeholder="25"
-        placeholderTextColor="#555"
+        placeholderTextColor={colors.textDisabled}
         maxLength={3}
       />
 
@@ -464,9 +476,11 @@ function ProfileStep({
 function DietaryStep({
   dietaryPref,
   setDietaryPref,
+  styles,
 }: {
   dietaryPref: DietaryPreference | null;
   setDietaryPref: (v: DietaryPreference) => void;
+  styles: Styles;
 }) {
   return (
     <View style={styles.centerStep}>
@@ -494,7 +508,7 @@ function DietaryStep({
   );
 }
 
-function CameraPreviewStep() {
+function CameraPreviewStep({ styles }: { styles: Styles }) {
   return (
     <View style={styles.centerStep}>
       <Text style={styles.heroEmoji}>{"\u{1F4F7}"}</Text>
@@ -503,16 +517,16 @@ function CameraPreviewStep() {
         CalTrack needs your camera to photograph meals and analyze them with AI. Photos are processed securely and never stored on our servers.
       </Text>
       <View style={styles.tipList}>
-        <TipRow emoji={"\u{1F4D0}"} text="Center the plate in frame" />
-        <TipRow emoji={"\u{1F4A1}"} text="Use good lighting \u2014 avoid dark or backlit shots" />
-        <TipRow emoji={"\u{1F440}"} text="Make sure all food items are visible" />
-        <TipRow emoji={"\u{1F4CF}"} text="Include a reference object (fork, hand) for size" />
+        <TipRow emoji={"\u{1F4D0}"} text="Center the plate in frame" styles={styles} />
+        <TipRow emoji={"\u{1F4A1}"} text="Use good lighting \u2014 avoid dark or backlit shots" styles={styles} />
+        <TipRow emoji={"\u{1F440}"} text="Make sure all food items are visible" styles={styles} />
+        <TipRow emoji={"\u{1F4CF}"} text="Include a reference object (fork, hand) for size" styles={styles} />
       </View>
     </View>
   );
 }
 
-function NotificationStep() {
+function NotificationStep({ styles }: { styles: Styles }) {
   return (
     <View style={styles.centerStep}>
       <Text style={styles.heroEmoji}>{"\u{1F514}"}</Text>
@@ -524,7 +538,7 @@ function NotificationStep() {
   );
 }
 
-function HealthKitStep() {
+function HealthKitStep({ styles }: { styles: Styles }) {
   return (
     <View style={styles.centerStep}>
       <Text style={styles.heroEmoji}>{"\u2764\uFE0F"}</Text>
@@ -536,7 +550,7 @@ function HealthKitStep() {
   );
 }
 
-function FirstMealStep() {
+function FirstMealStep({ styles }: { styles: Styles }) {
   return (
     <View style={styles.centerStep}>
       <Text style={styles.heroEmoji}>{"\u{1F680}"}</Text>
@@ -548,7 +562,7 @@ function FirstMealStep() {
   );
 }
 
-function TipRow({ emoji, text }: { emoji: string; text: string }) {
+function TipRow({ emoji, text, styles }: { emoji: string; text: string; styles: Styles }) {
   return (
     <View style={styles.tipRow}>
       <Text style={styles.tipEmoji}>{emoji}</Text>
@@ -582,224 +596,226 @@ async function scheduleMealReminders() {
 
 // --- Styles ---
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#0f0f23",
-    paddingTop: 60,
-  },
-  dotsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingHorizontal: 40,
-    marginBottom: 8,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#333",
-    marginHorizontal: 4,
-  },
-  dotActive: {
-    backgroundColor: "#4ade80",
-    width: 24,
-  },
-  dotDone: {
-    backgroundColor: "#4ade80",
-  },
-  content: {
-    flex: 1,
-  },
-  footer: {
-    paddingHorizontal: 40,
-    paddingBottom: 60,
-    alignItems: "center",
-  },
-  primaryBtn: {
-    backgroundColor: "#4ade80",
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 16,
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  btnDisabled: {
-    backgroundColor: "#1a1a2e",
-  },
-  btnText: {
-    color: "#000",
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  btnTextDisabled: {
-    color: "#555",
-  },
-  skipBtn: {
-    padding: 8,
-  },
-  skipText: {
-    color: "#888",
-    fontSize: 16,
-  },
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: 60,
+    },
+    dotsRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      paddingHorizontal: 40,
+      marginBottom: 8,
+    },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.inputBorder,
+      marginHorizontal: 4,
+    },
+    dotActive: {
+      backgroundColor: colors.accent,
+      width: 24,
+    },
+    dotDone: {
+      backgroundColor: colors.accent,
+    },
+    content: {
+      flex: 1,
+    },
+    footer: {
+      paddingHorizontal: 40,
+      paddingBottom: 60,
+      alignItems: "center",
+    },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      paddingVertical: 16,
+      paddingHorizontal: 40,
+      borderRadius: 16,
+      width: "100%",
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    btnDisabled: {
+      backgroundColor: colors.card,
+    },
+    btnText: {
+      color: colors.accentOnAccent,
+      fontSize: 18,
+      fontWeight: "700",
+    },
+    btnTextDisabled: {
+      color: colors.textDisabled,
+    },
+    skipBtn: {
+      padding: 8,
+    },
+    skipText: {
+      color: colors.textMuted,
+      fontSize: 16,
+    },
 
-  // Center-aligned steps
-  centerStep: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 40,
-  },
-  heroEmoji: {
-    fontSize: 80,
-    marginBottom: 24,
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  heroSubtitle: {
-    fontSize: 17,
-    color: "#aaa",
-    textAlign: "center",
-    lineHeight: 26,
-  },
+    // Center-aligned steps
+    centerStep: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 40,
+    },
+    heroEmoji: {
+      fontSize: 80,
+      marginBottom: 24,
+    },
+    heroTitle: {
+      fontSize: 28,
+      fontWeight: "800",
+      color: colors.text,
+      textAlign: "center",
+      marginBottom: 16,
+    },
+    heroSubtitle: {
+      fontSize: 17,
+      color: colors.textTertiary,
+      textAlign: "center",
+      lineHeight: 26,
+    },
 
-  // Steps
-  stepTitle: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  stepSubtitle: {
-    fontSize: 16,
-    color: "#aaa",
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  optionList: {
-    alignSelf: "stretch",
-    marginTop: 8,
-  },
+    // Steps
+    stepTitle: {
+      fontSize: 26,
+      fontWeight: "800",
+      color: colors.text,
+      textAlign: "center",
+      marginBottom: 8,
+    },
+    stepSubtitle: {
+      fontSize: 16,
+      color: colors.textTertiary,
+      textAlign: "center",
+      lineHeight: 24,
+      marginBottom: 24,
+    },
+    optionList: {
+      alignSelf: "stretch",
+      marginTop: 8,
+    },
 
-  // Shared option styles
-  groupLabel: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#888",
-    marginBottom: 10,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  optionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1a1a2e",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  optionSelected: {
-    borderColor: "#4ade80",
-    backgroundColor: "#1a2e1a",
-  },
-  optionEmoji: {
-    fontSize: 22,
-    marginRight: 14,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  optionDesc: {
-    fontSize: 13,
-    color: "#888",
-    marginTop: 2,
-  },
-  checkmark: {
-    marginLeft: "auto",
-    fontSize: 18,
-    color: "#4ade80",
-    fontWeight: "700",
-  },
+    // Shared option styles
+    groupLabel: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: colors.textMuted,
+      marginBottom: 10,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    optionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 10,
+      borderWidth: 2,
+      borderColor: "transparent",
+    },
+    optionSelected: {
+      borderColor: colors.accent,
+      backgroundColor: colors.selectedBackground,
+    },
+    optionEmoji: {
+      fontSize: 22,
+      marginRight: 14,
+    },
+    optionLabel: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    optionDesc: {
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    checkmark: {
+      marginLeft: "auto",
+      fontSize: 18,
+      color: colors.accent,
+      fontWeight: "700",
+    },
 
-  // Profile step
-  scrollStep: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  genderRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 20,
-  },
-  genderBtn: {
-    flex: 1,
-    backgroundColor: "#1a1a2e",
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  genderBtnSelected: {
-    borderColor: "#4ade80",
-    backgroundColor: "#1a2e1a",
-  },
-  genderBtnText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#888",
-  },
-  genderBtnTextSelected: {
-    color: "#fff",
-  },
-  numericInput: {
-    backgroundColor: "#1a1a2e",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 18,
-    color: "#fff",
-    marginBottom: 16,
-    fontWeight: "600",
-  },
+    // Profile step
+    scrollStep: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      paddingBottom: 24,
+    },
+    genderRow: {
+      flexDirection: "row",
+      gap: 12,
+      marginBottom: 20,
+    },
+    genderBtn: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      paddingVertical: 14,
+      alignItems: "center",
+      borderWidth: 2,
+      borderColor: "transparent",
+    },
+    genderBtnSelected: {
+      borderColor: colors.accent,
+      backgroundColor: colors.selectedBackground,
+    },
+    genderBtnText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textMuted,
+    },
+    genderBtnTextSelected: {
+      color: colors.text,
+    },
+    numericInput: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      fontSize: 18,
+      color: colors.text,
+      marginBottom: 16,
+      fontWeight: "600",
+    },
 
-  // Camera tips
-  tipList: {
-    alignSelf: "stretch",
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  tipRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    paddingHorizontal: 20,
-  },
-  tipEmoji: {
-    fontSize: 20,
-    marginRight: 14,
-    width: 28,
-    textAlign: "center",
-  },
-  tipText: {
-    fontSize: 15,
-    color: "#ccc",
-    flex: 1,
-    lineHeight: 22,
-  },
-});
+    // Camera tips
+    tipList: {
+      alignSelf: "stretch",
+      marginTop: 24,
+      marginBottom: 16,
+    },
+    tipRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+      paddingHorizontal: 20,
+    },
+    tipEmoji: {
+      fontSize: 20,
+      marginRight: 14,
+      width: 28,
+      textAlign: "center",
+    },
+    tipText: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      flex: 1,
+      lineHeight: 22,
+    },
+  });
+}

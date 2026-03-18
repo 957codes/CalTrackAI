@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { Stack, router, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { isOnboardingComplete } from "../src/utils/onboarding";
-import { initSentry, trackScreenNavigation } from "../src/services/sentry";
+import { initSentry, trackScreenNavigation, Sentry } from "../src/services/sentry";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
+import { ThemeProvider, useTheme } from "../src/theme";
 
 // Initialize Sentry as early as possible
 initSentry();
 
-export default function RootLayout() {
+function RootLayoutInner() {
   const [ready, setReady] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const pathname = usePathname();
+  const colors = useTheme();
 
   // Track screen navigation for Sentry breadcrumbs
   useEffect(() => {
@@ -39,16 +41,16 @@ export default function RootLayout() {
 
   if (!ready) {
     return (
-      <View style={styles.loading}>
-        <StatusBar style="light" />
-        <ActivityIndicator size="large" color="#4ade80" />
+      <View style={{ flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}>
+        <StatusBar style={colors.statusBarStyle} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <ErrorBoundary>
-      <StatusBar style="light" />
+    <>
+      <StatusBar style={colors.statusBarStyle} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
@@ -57,15 +59,18 @@ export default function RootLayout() {
         <Stack.Screen name="terms" options={{ headerShown: true, presentation: "modal" }} />
         <Stack.Screen name="faq" options={{ headerShown: true, presentation: "modal" }} />
       </Stack>
+    </>
+  );
+}
+
+function RootLayout() {
+  return (
+    <ErrorBoundary>
+      <ThemeProvider>
+        <RootLayoutInner />
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
 
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    backgroundColor: "#0f0f23",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+export default Sentry.wrap(RootLayout);

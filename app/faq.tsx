@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ScrollView, Text, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Stack } from "expo-router";
+import { useTheme, ThemeColors } from "../src/theme";
 
 interface FAQItem {
   question: string;
@@ -50,7 +51,7 @@ const FAQ_ITEMS: FAQItem[] = [
   },
 ];
 
-function FAQAccordion({ item }: { item: FAQItem }) {
+function FAQAccordion({ item, colors, styles }: { item: FAQItem; colors: ThemeColors; styles: ReturnType<typeof makeStyles> }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <TouchableOpacity
@@ -68,14 +69,17 @@ function FAQAccordion({ item }: { item: FAQItem }) {
 }
 
 export default function FAQScreen() {
+  const colors = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <>
       <Stack.Screen
         options={{
           headerShown: true,
           title: "FAQ & Help",
-          headerStyle: { backgroundColor: "#1a1a2e" },
-          headerTintColor: "#fff",
+          headerStyle: { backgroundColor: colors.card },
+          headerTintColor: colors.text,
           headerTitleStyle: { fontWeight: "700" },
         }}
       />
@@ -85,7 +89,7 @@ export default function FAQScreen() {
           Find answers to common questions about CalTrack AI below.
         </Text>
         {FAQ_ITEMS.map((item, i) => (
-          <FAQAccordion key={i} item={item} />
+          <FAQAccordion key={i} item={item} colors={colors} styles={styles} />
         ))}
 
         <Text style={styles.contactHeading}>Still need help?</Text>
@@ -97,31 +101,33 @@ export default function FAQScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0f0f23" },
-  content: { padding: 20, paddingBottom: 60 },
-  heading: { fontSize: 24, fontWeight: "800", color: "#fff", marginBottom: 8 },
-  intro: { fontSize: 15, color: "#888", marginBottom: 24 },
-  faqItem: {
-    backgroundColor: "#1a1a2e",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 10,
-  },
-  questionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  question: { fontSize: 15, fontWeight: "600", color: "#fff", flex: 1, paddingRight: 12 },
-  arrow: { fontSize: 20, color: "#4ade80", fontWeight: "700" },
-  answer: { fontSize: 14, color: "#ccc", lineHeight: 21, marginTop: 12 },
-  contactHeading: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#fff",
-    marginTop: 32,
-    marginBottom: 8,
-  },
-  contactBody: { fontSize: 15, color: "#888", lineHeight: 22 },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    content: { padding: 20, paddingBottom: 60 },
+    heading: { fontSize: 24, fontWeight: "800", color: colors.text, marginBottom: 8 },
+    intro: { fontSize: 15, color: colors.textMuted, marginBottom: 24 },
+    faqItem: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 10,
+    },
+    questionRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    question: { fontSize: 15, fontWeight: "600", color: colors.text, flex: 1, paddingRight: 12 },
+    arrow: { fontSize: 20, color: colors.accent, fontWeight: "700" },
+    answer: { fontSize: 14, color: colors.textSecondary, lineHeight: 21, marginTop: 12 },
+    contactHeading: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+      marginTop: 32,
+      marginBottom: 8,
+    },
+    contactBody: { fontSize: 15, color: colors.textMuted, lineHeight: 22 },
+  });
+}
