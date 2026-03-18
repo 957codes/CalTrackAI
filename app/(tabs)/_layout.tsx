@@ -6,6 +6,7 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
     Camera: "📷",
     Log: "📋",
     Dashboard: "📊",
+    More: "⚙️",
   };
   return (
     <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }}>
@@ -59,6 +60,16 @@ export default function TabLayout() {
           headerTitle: "Daily Dashboard",
           tabBarIcon: ({ focused }) => (
             <TabIcon label="Dashboard" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: "More",
+          headerTitle: "Settings",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon label="More" focused={focused} />
           ),
         }}
       />
