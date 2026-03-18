@@ -48,7 +48,7 @@ export const darkColors: ThemeColors = {
   text: "#fff",
   textSecondary: "#ccc",
   textTertiary: "#aaa",
-  textMuted: "#888",
+  textMuted: "#8e8e93",
   textDim: "#666",
   textDisabled: "#555",
 
@@ -82,11 +82,11 @@ export const lightColors: ThemeColors = {
   text: "#1c1c1e",
   textSecondary: "#3a3a3c",
   textTertiary: "#636366",
-  textMuted: "#8e8e93",
-  textDim: "#aeaeb2",
+  textMuted: "#767676",
+  textDim: "#8C8C8C",
   textDisabled: "#c7c7cc",
 
-  accent: "#34c759",
+  accent: "#248A3D",
   accentOnAccent: "#fff",
   accentSubtle: "#e8f5e9",
 
