@@ -1,4 +1,5 @@
 import { FoodItem, MacroBreakdown } from "../types";
+import { Sentry, trackUserAction } from "./sentry";
 
 const ANTHROPIC_API_KEY = ""; // Set via env or config in production
 
@@ -32,48 +33,77 @@ export async function analyzeFoodPhoto(
   base64Image: string
 ): Promise<AnalysisResult> {
   if (!ANTHROPIC_API_KEY) {
+    trackUserAction("ai_analysis_start", { mode: "mock" });
     return getMockAnalysis();
   }
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2024-01-01",
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: "image/jpeg",
-                data: base64Image,
-              },
-            },
-            {
-              type: "text",
-              text: FOOD_ANALYSIS_PROMPT,
-            },
-          ],
-        },
-      ],
-    }),
-  });
-
-  const data = await response.json();
-  const text = data.content?.[0]?.text || "";
+  trackUserAction("ai_analysis_start", { mode: "live" });
 
   try {
-    const parsed = JSON.parse(text);
-    return buildResult(parsed.foods);
-  } catch {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2024-01-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/jpeg",
+                  data: base64Image,
+                },
+              },
+              {
+                type: "text",
+                text: FOOD_ANALYSIS_PROMPT,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      Sentry.captureMessage("AI analysis API error", {
+        level: "error",
+        extra: { status: response.status, body: errorText },
+      });
+      trackUserAction("ai_analysis_error", { status: String(response.status) });
+      return getMockAnalysis();
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "";
+
+    try {
+      const parsed = JSON.parse(text);
+      const result = buildResult(parsed.foods);
+      trackUserAction("ai_analysis_success", {
+        itemCount: String(result.foods.length),
+        totalCalories: String(result.totalMacros.calories),
+      });
+      return result;
+    } catch {
+      Sentry.captureMessage("AI analysis JSON parse failed", {
+        level: "warning",
+        extra: { rawResponse: text.slice(0, 500) },
+      });
+      trackUserAction("ai_analysis_parse_error");
+      return getMockAnalysis();
+    }
+  } catch (error) {
+    Sentry.captureException(error);
+    trackUserAction("ai_analysis_network_error");
     return getMockAnalysis();
   }
 }

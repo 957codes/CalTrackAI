@@ -35,5 +35,16 @@ jest.mock("../services/healthKitService", () => ({
   writeMealToHealthKit: jest.fn(() => Promise.resolve()),
 }));
 
+// Mock Sentry
+jest.mock("@sentry/react-native", () => ({
+  init: jest.fn(),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  addBreadcrumb: jest.fn(),
+  setTag: jest.fn(),
+  setUser: jest.fn(),
+  wrap: jest.fn((component: any) => component),
+}));
+
 // Expose store for tests to clear between runs
 (globalThis as any).__asyncStorageMock = store;

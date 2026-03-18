@@ -20,6 +20,9 @@
     "production": {
       "ios": {
         "autoIncrement": true
+      },
+      "env": {
+        "SENTRY_AUTH_TOKEN": ""
       }
     }
   },
