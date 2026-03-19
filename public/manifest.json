@@ -3,20 +3,31 @@
   "short_name": "CalTrack",
   "description": "AI-powered calorie and macro tracker — snap a photo, get instant nutrition data",
   "start_url": "/CalTrackAI/",
+  "scope": "/CalTrackAI/",
+  "id": "/CalTrackAI/",
   "display": "standalone",
   "background_color": "#0f0f23",
   "theme_color": "#4ade80",
   "orientation": "portrait",
+  "categories": ["health", "food", "lifestyle"],
   "icons": [
     {
       "src": "/CalTrackAI/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/CalTrackAI/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/CalTrackAI/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

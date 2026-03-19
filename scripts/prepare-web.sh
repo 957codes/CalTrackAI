@@ -7,7 +7,7 @@ DIST="dist"
 PUBLIC="public"
 BASE_PATH="/CalTrackAI"
 
-# Copy public assets (manifest, icons) into dist
+# Copy public assets (manifest, icons, service worker, offline page) into dist
 if [ -d "$PUBLIC" ]; then
   cp -r "$PUBLIC"/* "$DIST"/
 fi
@@ -23,11 +23,18 @@ if [ -f assets/icon.png ]; then
   fi
 fi
 
-# Inject PWA manifest link and meta tags into index.html
+# Inject PWA manifest link, meta tags, and service worker registration into index.html
 if [ -f "$DIST/index.html" ]; then
   # Only inject if not already present
   if ! grep -q 'manifest.json' "$DIST/index.html"; then
     sed -i.bak 's|</head>|  <link rel="manifest" href="'"$BASE_PATH"'/manifest.json" />\n  <meta name="theme-color" content="#4ade80" />\n  <meta name="apple-mobile-web-app-capable" content="yes" />\n  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />\n  <meta name="apple-mobile-web-app-title" content="CalTrack AI" />\n  <link rel="apple-touch-icon" href="'"$BASE_PATH"'/icon-192.png" />\n  <meta name="description" content="AI-powered calorie and macro tracker — snap a photo, get instant nutrition data" />\n</head>|' "$DIST/index.html"
+    rm -f "$DIST/index.html.bak"
+  fi
+
+  # Inject service worker registration before </body> if not already present
+  if ! grep -q 'serviceWorker' "$DIST/index.html"; then
+    SW_SCRIPT='<script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("'"$BASE_PATH"'/sw.js",{scope:"'"$BASE_PATH"'/"}).then(function(r){console.log("SW registered:",r.scope)}).catch(function(e){console.warn("SW registration failed:",e)})})}</script>'
+    sed -i.bak "s|</body>|${SW_SCRIPT}\n</body>|" "$DIST/index.html"
     rm -f "$DIST/index.html.bak"
   fi
 fi
