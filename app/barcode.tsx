@@ -305,11 +305,11 @@ function MacroCard({
 }) {
   return (
     <View style={[styles.macroCard, { borderTopColor: color }]}>
-      <Text style={styles.macroValue}>
+      <Text style={styles.macroValue} maxFontSizeMultiplier={1.35}>
         {Math.round(value)}
         <Text style={styles.macroUnit}> {unit}</Text>
       </Text>
-      <Text style={styles.macroLabel}>{label}</Text>
+      <Text style={styles.macroLabel} maxFontSizeMultiplier={1.35}>{label}</Text>
     </View>
   );
 }

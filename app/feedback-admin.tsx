@@ -218,6 +218,7 @@ export default function FeedbackAdminScreen() {
                         styles.statusText,
                         { color: STATUS_COLORS[item.status] },
                       ]}
+                      maxFontSizeMultiplier={1.2}
                     >
                       {item.status}
                     </Text>

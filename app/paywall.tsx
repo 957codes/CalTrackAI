@@ -136,16 +136,16 @@ function VariantB({
 
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>4.8★</Text>
-          <Text style={styles.statLabel}>App Rating</Text>
+          <Text style={styles.statNumber} maxFontSizeMultiplier={1.35}>4.8★</Text>
+          <Text style={styles.statLabel} maxFontSizeMultiplier={1.2}>App Rating</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>10K+</Text>
-          <Text style={styles.statLabel}>Active Users</Text>
+          <Text style={styles.statNumber} maxFontSizeMultiplier={1.35}>10K+</Text>
+          <Text style={styles.statLabel} maxFontSizeMultiplier={1.2}>Active Users</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>2M+</Text>
-          <Text style={styles.statLabel}>Meals Logged</Text>
+          <Text style={styles.statNumber} maxFontSizeMultiplier={1.35}>2M+</Text>
+          <Text style={styles.statLabel} maxFontSizeMultiplier={1.2}>Meals Logged</Text>
         </View>
       </View>
 

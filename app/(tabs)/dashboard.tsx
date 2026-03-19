@@ -125,11 +125,11 @@ export default function DashboardScreen() {
                 <Text style={styles.waterDropIcon}>💧</Text>
               </View>
               <View style={styles.waterInfo}>
-                <Text style={[styles.waterAmount, { color: colors.water }]}>
+                <Text style={[styles.waterAmount, { color: colors.water }]} maxFontSizeMultiplier={1.5}>
                   {waterLog.totalOz}
                   <Text style={styles.waterUnit}> / {waterGoalOz} oz</Text>
                 </Text>
-                <Text style={styles.waterGlasses}>
+                <Text style={styles.waterGlasses} maxFontSizeMultiplier={1.5}>
                   {Math.floor(waterLog.totalOz / 8)} of{" "}
                   {Math.ceil(waterGoalOz / 8)} glasses
                 </Text>
@@ -186,8 +186,8 @@ export default function DashboardScreen() {
                     ]}
                   />
                 </View>
-                <Text style={styles.weekDayLabel}>{dayNames[d.getDay()]}</Text>
-                <Text style={styles.weekDayCals}>
+                <Text style={styles.weekDayLabel} maxFontSizeMultiplier={1.2}>{dayNames[d.getDay()]}</Text>
+                <Text style={styles.weekDayCals} maxFontSizeMultiplier={1.2}>
                   {Math.round(log.totalMacros.calories)}
                 </Text>
               </View>
@@ -271,11 +271,11 @@ function ProgressBar({
 function StatCard({ label, value, unit, styles }: { label: string; value: number; unit: string; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.statCard}>
-      <Text style={styles.statValue}>
+      <Text style={styles.statValue} maxFontSizeMultiplier={1.35}>
         {value}
         <Text style={styles.statUnit}> {unit}</Text>
       </Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statLabel} maxFontSizeMultiplier={1.35}>{label}</Text>
     </View>
   );
 }

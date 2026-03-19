@@ -162,8 +162,8 @@ export default function LogScreen() {
 function SummaryItem({ label, value, color, styles }: { label: string; value: number; color: string; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.summaryItem}>
-      <Text style={[styles.summaryValue, { color }]}>{value}</Text>
-      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={[styles.summaryValue, { color }]} maxFontSizeMultiplier={1.35}>{value}</Text>
+      <Text style={styles.summaryLabel} maxFontSizeMultiplier={1.35}>{label}</Text>
     </View>
   );
 }

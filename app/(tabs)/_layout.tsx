@@ -13,7 +13,7 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
     More: "⚙️",
   };
   return (
-    <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }}>
+    <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }} maxFontSizeMultiplier={1.2}>
       {icons[label] || "•"}
     </Text>
   );

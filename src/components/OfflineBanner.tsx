@@ -10,7 +10,7 @@ export function OfflineBanner() {
 
   return (
     <View style={[styles.banner, { backgroundColor: colors.warning }]}>
-      <Text style={styles.text}>You're offline — meals will sync when you reconnect</Text>
+      <Text style={styles.text} maxFontSizeMultiplier={1.2}>You're offline — meals will sync when you reconnect</Text>
     </View>
   );
 }

@@ -190,6 +190,7 @@ export default function MealPlanScreen() {
                 styles.modeTabText,
                 viewMode === mode && { color: colors.accentOnAccent },
               ]}
+              maxFontSizeMultiplier={1.2}
             >
               {mode === "plan" ? "Meal Plan" : mode === "grocery" ? "Grocery List" : "Saved Plans"}
             </Text>
@@ -244,6 +245,7 @@ export default function MealPlanScreen() {
                         styles.dayTabLabel,
                         selectedDay === i && { color: colors.accentOnAccent },
                       ]}
+                      maxFontSizeMultiplier={1.2}
                     >
                       {DAY_NAMES[i]}
                     </Text>
@@ -252,6 +254,7 @@ export default function MealPlanScreen() {
                         styles.dayTabCals,
                         selectedDay === i && { color: colors.accentOnAccent },
                       ]}
+                      maxFontSizeMultiplier={1.2}
                     >
                       {day.totalMacros.calories} kcal
                     </Text>
@@ -377,7 +380,7 @@ export default function MealPlanScreen() {
                     </Text>
                     {activePlan?.id === plan.id && (
                       <View style={[styles.activeBadge, { backgroundColor: colors.accent }]}>
-                        <Text style={[styles.activeBadgeText, { color: colors.accentOnAccent }]}>Active</Text>
+                        <Text style={[styles.activeBadgeText, { color: colors.accentOnAccent }]} maxFontSizeMultiplier={1.2}>Active</Text>
                       </View>
                     )}
                   </View>
@@ -427,8 +430,8 @@ function MacroPill({
 }) {
   return (
     <View style={[styles.macroPill, { borderColor: color }]}>
-      <Text style={[styles.macroPillValue, { color }]}>{Math.round(value)}</Text>
-      <Text style={styles.macroPillLabel}>
+      <Text style={[styles.macroPillValue, { color }]} maxFontSizeMultiplier={1.35}>{Math.round(value)}</Text>
+      <Text style={styles.macroPillLabel} maxFontSizeMultiplier={1.2}>
         {unit} {label}
       </Text>
     </View>

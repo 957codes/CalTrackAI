@@ -347,7 +347,7 @@ export default function CameraScreen() {
                       <View style={styles.foodInfo}>
                         <View style={styles.foodNameRow}>
                           <Text style={styles.foodName}>{f.name}</Text>
-                          {f.corrected && <Text style={styles.correctedBadge}>edited</Text>}
+                          {f.corrected && <Text style={styles.correctedBadge} maxFontSizeMultiplier={1.2}>edited</Text>}
                         </View>
                         <Text style={styles.foodPortion}>
                           {f.portion}
@@ -430,7 +430,7 @@ function ConfidenceBadge({ confidence, colors }: { confidence: number; colors: T
   const color = confidence >= 80 ? colors.accent : confidence >= 60 ? colors.warning : colors.destructive;
   return (
     <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, backgroundColor: color + "20", borderColor: color }}>
-      <Text style={{ fontSize: 13, fontWeight: "700", color }}>{confidence}%</Text>
+      <Text style={{ fontSize: 13, fontWeight: "700", color }} maxFontSizeMultiplier={1.2}>{confidence}%</Text>
     </View>
   );
 }
@@ -455,11 +455,11 @@ function MacroCard({
 }) {
   return (
     <View style={[styles.macroCard, { borderTopColor: color }]}>
-      <Text style={styles.macroValue}>
+      <Text style={styles.macroValue} maxFontSizeMultiplier={1.35}>
         {Math.round(value)}
         <Text style={styles.macroUnit}> {unit}</Text>
       </Text>
-      <Text style={styles.macroLabel}>{label}</Text>
+      <Text style={styles.macroLabel} maxFontSizeMultiplier={1.35}>{label}</Text>
     </View>
   );
 }
