@@ -210,8 +210,8 @@ export default function MoreScreen() {
       <Text style={styles.sectionTitle}>Support</Text>
       <View style={styles.section}>
         <SettingsRow
-          label="FAQ & Help"
-          sublabel="Common questions and answers"
+          label="Help Center"
+          sublabel="How-to guides, FAQ, and troubleshooting"
           onPress={() => router.push("/faq")}
           styles={styles}
         />
