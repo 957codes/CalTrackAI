@@ -387,7 +387,7 @@ function makeStyles(colors: ThemeColors) {
       borderRadius: 10,
     },
     removeScreenshot: {
-      padding: 10,
+      padding: 14,
       alignItems: "center",
     },
     removeScreenshotText: { fontSize: 13, color: colors.destructive, fontWeight: "600" },

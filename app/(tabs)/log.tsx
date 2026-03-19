@@ -135,6 +135,7 @@ export default function LogScreen() {
               <TouchableOpacity
                 onPress={() => handleDeleteWater(entry.id)}
                 style={styles.deleteBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Text style={styles.deleteBtnText}>✕</Text>
               </TouchableOpacity>
@@ -185,7 +186,7 @@ function MealCard({ meal, onDelete, styles, colors }: { meal: MealEntry; onDelet
             {Math.round(meal.totalMacros.calories)} kcal
           </Text>
         </View>
-        <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+        <TouchableOpacity onPress={onDelete} style={styles.deleteBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Text style={styles.deleteBtnText}>✕</Text>
         </TouchableOpacity>
       </View>
@@ -244,7 +245,7 @@ function makeStyles(colors: ThemeColors) {
       flex: 1,
       borderWidth: 1.5,
       borderRadius: 10,
-      paddingVertical: 8,
+      paddingVertical: 14,
       alignItems: "center",
     },
     waterQuickText: {
@@ -279,7 +280,7 @@ function makeStyles(colors: ThemeColors) {
     mealHeaderText: { flex: 1 },
     mealTime: { color: colors.textMuted, fontSize: 13 },
     mealCalories: { color: colors.text, fontSize: 18, fontWeight: "700" },
-    deleteBtn: { padding: 8 },
+    deleteBtn: { padding: 14 },
     deleteBtnText: { color: colors.destructive, fontSize: 18 },
     foodItem: { paddingVertical: 6, borderTopWidth: 1, borderTopColor: colors.border },
     foodName: { color: colors.text, fontWeight: "600", marginBottom: 2 },

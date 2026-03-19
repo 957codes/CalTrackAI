@@ -404,9 +404,9 @@ function makeStyles(colors: ThemeColors) {
       gap: 12,
     },
     stepperBtn: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       backgroundColor: colors.border,
       alignItems: "center",
       justifyContent: "center",

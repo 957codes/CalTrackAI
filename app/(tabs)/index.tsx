@@ -557,7 +557,7 @@ function makeStyles(colors: ThemeColors) {
     verifyBtn: {
       borderColor: colors.accent,
       borderWidth: 1,
-      paddingVertical: 10,
+      paddingVertical: 14,
       borderRadius: 12,
       marginBottom: 12,
       alignItems: "center",
@@ -592,9 +592,9 @@ function makeStyles(colors: ThemeColors) {
     },
     modalHint: { color: colors.textDim, fontSize: 12, marginBottom: 20 },
     modalActions: { flexDirection: "row", justifyContent: "flex-end", gap: 12 },
-    modalCancel: { paddingVertical: 10, paddingHorizontal: 20 },
+    modalCancel: { paddingVertical: 14, paddingHorizontal: 20 },
     modalCancelText: { color: colors.textMuted, fontSize: 15 },
-    modalSave: { backgroundColor: colors.accent, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 10 },
+    modalSave: { backgroundColor: colors.accent, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 10 },
     modalSaveText: { color: colors.accentOnAccent, fontSize: 15, fontWeight: "700" },
     // Offline search
     offlineSection: { marginTop: 24, width: "100%" },

@@ -272,7 +272,7 @@ function makeStyles(colors: ThemeColors) {
     },
     filterTab: {
       flex: 1,
-      paddingVertical: 8,
+      paddingVertical: 14,
       borderRadius: 8,
       backgroundColor: colors.card,
       alignItems: "center",
@@ -288,7 +288,7 @@ function makeStyles(colors: ThemeColors) {
       marginBottom: 16,
     },
     actionBtn: {
-      paddingVertical: 8,
+      paddingVertical: 14,
       paddingHorizontal: 14,
       borderRadius: 8,
       backgroundColor: colors.card,
@@ -359,7 +359,7 @@ function makeStyles(colors: ThemeColors) {
     },
     deleteBtn: {
       marginTop: 12,
-      paddingVertical: 8,
+      paddingVertical: 14,
       alignItems: "center",
     },
     deleteBtnText: {

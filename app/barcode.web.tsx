@@ -315,8 +315,8 @@ function makeStyles(colors: ThemeColors) {
     servingsLabel: { color: colors.textTertiary, fontSize: 16 },
     servingBtn: {
       backgroundColor: colors.card,
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       borderRadius: 10,
       alignItems: "center",
       justifyContent: "center",
@@ -363,7 +363,7 @@ function makeStyles(colors: ThemeColors) {
     backBtn: {
       marginTop: 10,
       alignItems: "center",
-      paddingVertical: 10,
+      paddingVertical: 14,
     },
     backBtnText: { color: colors.textMuted, fontSize: 15, fontWeight: "600" },
     recentSection: { marginTop: 20 },

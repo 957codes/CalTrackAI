@@ -348,7 +348,7 @@ function makeStyles(colors: ThemeColors) {
     ctaText: { fontSize: 18, fontWeight: "700" },
 
     // Dismiss
-    dismissButton: { paddingVertical: 12 },
+    dismissButton: { paddingVertical: 14 },
     dismissText: { fontSize: 15, color: colors.textMuted },
 
     // Social proof (Variant B)

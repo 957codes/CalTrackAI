@@ -220,7 +220,7 @@ export default function MealPlanScreen() {
               {/* Plan header */}
               <View style={styles.planHeader}>
                 <Text style={styles.planName}>{activePlan.name}</Text>
-                <TouchableOpacity onPress={handleToggleFavorite} activeOpacity={0.7}>
+                <TouchableOpacity onPress={handleToggleFavorite} activeOpacity={0.7} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                   <Text style={{ fontSize: 24 }}>
                     {activePlan.isFavorite ? "⭐" : "☆"}
                   </Text>
@@ -453,7 +453,7 @@ function makeStyles(colors: ThemeColors) {
     modeRow: { flexDirection: "row", marginBottom: 20, gap: 8 },
     modeTab: {
       flex: 1,
-      paddingVertical: 10,
+      paddingVertical: 14,
       borderRadius: 12,
       backgroundColor: colors.card,
       alignItems: "center",
@@ -479,7 +479,7 @@ function makeStyles(colors: ThemeColors) {
     dayScroller: { marginBottom: 16 },
     dayTab: {
       paddingHorizontal: 16,
-      paddingVertical: 10,
+      paddingVertical: 14,
       borderRadius: 12,
       backgroundColor: colors.card,
       marginRight: 8,
@@ -518,7 +518,7 @@ function makeStyles(colors: ThemeColors) {
       borderWidth: 1.5,
       borderRadius: 10,
       paddingHorizontal: 14,
-      paddingVertical: 6,
+      paddingVertical: 14,
     },
     swapBtnText: { fontSize: 13, fontWeight: "700" },
 
@@ -553,7 +553,7 @@ function makeStyles(colors: ThemeColors) {
     groceryRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 10,
+      paddingVertical: 14,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
@@ -576,7 +576,7 @@ function makeStyles(colors: ThemeColors) {
     activeBadgeText: { fontSize: 11, fontWeight: "700" },
     savedMeta: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
     savedDate: { fontSize: 12, color: colors.textDim, marginTop: 2 },
-    deleteBtn: { paddingLeft: 12 },
+    deleteBtn: { padding: 14 },
     deleteBtnText: { fontSize: 13, fontWeight: "600" },
   });
 }

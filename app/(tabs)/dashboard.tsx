@@ -360,7 +360,7 @@ function makeStyles(colors: ThemeColors) {
       flex: 1,
       borderWidth: 1.5,
       borderRadius: 12,
-      paddingVertical: 10,
+      paddingVertical: 14,
       alignItems: "center",
     },
     quickLogText: {
