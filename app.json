@@ -74,6 +74,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "experiments": {
+      "baseUrl": "/CalTrackAI"
+    },
     "plugins": [
       "expo-router",
       [
