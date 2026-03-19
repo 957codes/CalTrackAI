@@ -11,6 +11,7 @@ import {
   TextInput,
   Modal,
   FlatList,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -43,6 +44,17 @@ export default function CameraScreen() {
 
   async function takePhoto() {
     trackUserAction("take_photo");
+    if (Platform.OS === "web") {
+      // On web, use image library with camera capture hint
+      const result = await ImagePicker.launchImageLibraryAsync({
+        base64: true,
+        quality: 0.7,
+      });
+      if (!result.canceled && result.assets[0]) {
+        processImage(result.assets[0].uri, result.assets[0].base64 || "");
+      }
+      return;
+    }
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission needed", "Camera access is required to scan meals.");
@@ -210,20 +222,26 @@ export default function CameraScreen() {
             Tip: Include a fork or your hand in the photo for better portion estimates
           </Text>
           <TouchableOpacity style={styles.primaryBtn} onPress={takePhoto}>
-            <Text style={styles.btnText}>Take Photo</Text>
+            <Text style={styles.btnText}>
+              {Platform.OS === "web" ? "Upload Photo" : "Take Photo"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.barcodeBtn}
-            onPress={() => {
-              trackUserAction("open_barcode_scanner");
-              router.push("/barcode");
-            }}
-          >
-            <Text style={styles.barcodeBtnText}>Scan Barcode</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={pickImage}>
-            <Text style={styles.btnTextSecondary}>Choose from Gallery</Text>
-          </TouchableOpacity>
+          {Platform.OS !== "web" && (
+            <TouchableOpacity
+              style={styles.barcodeBtn}
+              onPress={() => {
+                trackUserAction("open_barcode_scanner");
+                router.push("/barcode");
+              }}
+            >
+              <Text style={styles.barcodeBtnText}>Scan Barcode</Text>
+            </TouchableOpacity>
+          )}
+          {Platform.OS !== "web" && (
+            <TouchableOpacity style={styles.secondaryBtn} onPress={pickImage}>
+              <Text style={styles.btnTextSecondary}>Choose from Gallery</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Offline food search */}
           {!online && (

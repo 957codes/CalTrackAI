@@ -8,9 +8,9 @@ import {
   Alert,
   ScrollView,
   TextInput,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import {
   setOnboardingComplete,
@@ -159,10 +159,12 @@ export default function OnboardingScreen() {
   }
 
   async function requestNotificationPermission() {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status === "granted") {
-      // Schedule default meal reminders
-      await scheduleMealReminders();
+    if (Platform.OS !== "web") {
+      const Notifications = await import("expo-notifications");
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status === "granted") {
+        await scheduleMealReminders();
+      }
     }
     handleNext();
   }
@@ -573,6 +575,7 @@ function TipRow({ emoji, text, styles }: { emoji: string; text: string; styles: 
 }
 
 async function scheduleMealReminders() {
+  const Notifications = await import("expo-notifications");
   // Cancel existing scheduled notifications to avoid duplicates
   await Notifications.cancelAllScheduledNotificationsAsync();
 
